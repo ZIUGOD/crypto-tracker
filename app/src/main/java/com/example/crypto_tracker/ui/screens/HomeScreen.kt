@@ -28,9 +28,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,60 +41,42 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.crypto_tracker.data.model.CryptoCoin
-import com.example.crypto_tracker.data.repository.CryptoRepository
 import com.example.crypto_tracker.notification.CryptoNotificationManager
 import com.example.crypto_tracker.notification.NotificationPreferences
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import com.example.crypto_tracker.ui.viewmodel.CryptoViewModel
+import com.example.crypto_tracker.ui.viewmodel.HomeUiState
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 /**
  * Main Home Screen displaying the top 10 cryptocurrencies ranked dynamically by market cap.
  *
- * Automatically refreshes price and market rankings every 60 seconds (1 minute).
- * Allows the user to toggle which coins they want tracked in the persistent status bar notification.
+ * Consumes [CryptoViewModel] following the MVVM architectural pattern.
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
+ * @param viewModel [CryptoViewModel] instance providing UI state and actions.
  */
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    viewModel: CryptoViewModel = viewModel()
+) {
     val context = LocalContext.current
-    val repository = remember { CryptoRepository() }
     val notificationPrefs = remember { NotificationPreferences(context) }
     val notificationManager = remember { CryptoNotificationManager(context) }
 
-    // State holders for UI data
-    var topCoins by remember { mutableStateOf<List<CryptoCoin>>(emptyList()) }
+    val uiState by viewModel.uiState.collectAsState()
     var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
-    var lastUpdated by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var retryKey by remember { mutableIntStateOf(0) }
 
-    // LaunchedEffect handles initial data fetch and 1-minute auto-refresh loop.
-    // Re-triggers if retryKey changes (e.g. user clicks "Try Again").
-    LaunchedEffect(retryKey) {
-        isLoading = true
-        while (isActive) {
-            val result = repository.fetchTop10Cryptos()
-            result.onSuccess { coins ->
-                topCoins = coins
-                lastUpdated = getCurrentTimeFormatted()
-                errorMessage = null
-                // Update persistent notification with current prices of selected coins
-                notificationManager.showPortfolioNotification(coins, selectedNotifIds)
-            }.onFailure {
-                if (topCoins.isEmpty()) {
-                    errorMessage = "Failed to load rankings. Please check your connection."
-                }
-            }
-            isLoading = false
-            delay(60_000L) // Auto-refresh interval (1 minute)
+    // Whenever successful state updates, trigger background notification update
+    val currentState = uiState
+    if (currentState is HomeUiState.Success) {
+        remember(currentState.coins) {
+            notificationManager.showPortfolioNotification(currentState.coins, selectedNotifIds)
+            true
         }
     }
 
@@ -125,7 +106,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isLoading) {
+                if (uiState is HomeUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
                         strokeWidth = 2.dp
@@ -141,9 +122,9 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 }
             }
 
-            if (lastUpdated != null) {
+            if (currentState is HomeUiState.Success) {
                 Text(
-                    text = "Updated: $lastUpdated",
+                    text = "Updated: ${currentState.lastUpdated}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -152,62 +133,63 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Main Ranking List or Fallback UI (Error / Loading)
-        if (errorMessage != null && topCoins.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = errorMessage!!,
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(onClick = { retryKey++ }) {
-                        Text(text = "Try Again")
+        // State-driven UI rendering (MVVM pattern)
+        when (val state = uiState) {
+            is HomeUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = "Loading top 10 market rankings...", color = Color.Gray)
                     }
                 }
             }
-        } else if (isLoading && topCoins.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "Loading top 10 market rankings...", color = Color.Gray)
+            is HomeUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(onClick = { viewModel.refresh() }) {
+                            Text(text = "Try Again")
+                        }
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(topCoins) { coin ->
-                    val isNotified = selectedNotifIds.contains(coin.id)
-                    CryptoRankCard(
-                        coin = coin,
-                        isNotified = isNotified,
-                        onToggleNotification = {
-                            selectedNotifIds = if (isNotified) {
-                                selectedNotifIds - coin.id
-                            } else {
-                                selectedNotifIds + coin.id
+            is HomeUiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(state.coins) { coin ->
+                        val isNotified = selectedNotifIds.contains(coin.id)
+                        CryptoRankCard(
+                            coin = coin,
+                            isNotified = isNotified,
+                            onToggleNotification = {
+                                selectedNotifIds = if (isNotified) {
+                                    selectedNotifIds - coin.id
+                                } else {
+                                    selectedNotifIds + coin.id
+                                }
+                                notificationPrefs.setSelectedCoinIds(selectedNotifIds)
+                                notificationManager.showPortfolioNotification(state.coins, selectedNotifIds)
                             }
-                            notificationPrefs.setSelectedCoinIds(selectedNotifIds)
-                            // Update notification immediately when user toggles selection
-                            if (topCoins.isNotEmpty()) {
-                                notificationManager.showPortfolioNotification(topCoins, selectedNotifIds)
-                            }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
@@ -249,7 +231,7 @@ fun CryptoRankCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Minimalist podium styling for Top 3 (Gold #1, Silver #2, Bronze #3)
+                // Podium styling for Top 3 (Gold #1, Silver #2, Bronze #3) with fixed high-contrast colors
                 val podiumColors = when (coin.rank) {
                     1 -> Pair(Color(0xFFFFD700), Color(0xFF3E2723)) // Gold (Ouro)
                     2 -> Pair(Color(0xFFCFD8DC), Color(0xFF263238)) // Silver (Prata)
@@ -383,12 +365,4 @@ fun CryptoRankCard(
 private fun formatCurrencyUsd(value: Double): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale.US)
     return formatter.format(value)
-}
-
-/**
- * Returns the current device local time formatted as "HH:mm:ss".
- */
-private fun getCurrentTimeFormatted(): String {
-    val formatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-    return formatter.format(Date())
 }
