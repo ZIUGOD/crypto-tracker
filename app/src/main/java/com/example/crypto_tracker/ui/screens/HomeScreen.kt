@@ -1,5 +1,9 @@
 package com.example.crypto_tracker.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,12 +38,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.crypto_tracker.data.model.CryptoCoin
 import com.example.crypto_tracker.data.repository.CryptoRepository
+import com.example.crypto_tracker.notification.CryptoNotificationManager
+import com.example.crypto_tracker.notification.NotificationPreferences
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import java.text.NumberFormat
@@ -49,15 +58,20 @@ import java.util.Locale
  * Main Home Screen displaying the top 10 cryptocurrencies ranked dynamically by market cap.
  *
  * Automatically refreshes price and market rankings every 60 seconds (1 minute).
+ * Allows the user to toggle which coins they want tracked in the persistent status bar notification.
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
  */
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
     val repository = remember { CryptoRepository() }
+    val notificationPrefs = remember { NotificationPreferences(context) }
+    val notificationManager = remember { CryptoNotificationManager(context) }
 
     // State holders for UI data
     var topCoins by remember { mutableStateOf<List<CryptoCoin>>(emptyList()) }
+    var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
     var lastUpdated by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -73,6 +87,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 topCoins = coins
                 lastUpdated = getCurrentTimeFormatted()
                 errorMessage = null
+                // Update persistent notification with current prices of selected coins
+                notificationManager.showPortfolioNotification(coins, selectedNotifIds)
             }.onFailure {
                 if (topCoins.isEmpty()) {
                     errorMessage = "Failed to load rankings. Please check your connection."
@@ -95,7 +111,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Global market ranking by market capitalization",
+            text = "Select 🔔 to pin live prices to your notification bar",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray
         )
@@ -175,7 +191,23 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(topCoins) { coin ->
-                    CryptoRankCard(coin = coin)
+                    val isNotified = selectedNotifIds.contains(coin.id)
+                    CryptoRankCard(
+                        coin = coin,
+                        isNotified = isNotified,
+                        onToggleNotification = {
+                            selectedNotifIds = if (isNotified) {
+                                selectedNotifIds - coin.id
+                            } else {
+                                selectedNotifIds + coin.id
+                            }
+                            notificationPrefs.setSelectedCoinIds(selectedNotifIds)
+                            // Update notification immediately when user toggles selection
+                            if (topCoins.isNotEmpty()) {
+                                notificationManager.showPortfolioNotification(topCoins, selectedNotifIds)
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -185,14 +217,21 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 /**
  * Card composable representing a single cryptocurrency in the market ranking list.
  *
- * Displays a discreet rank number (#1-#10), remote API image logo, coin name, symbol, spot price, and 24h change %.
+ * Displays minimalist podium badge for Top 3 (Gold, Silver, Bronze), remote API image logo, name, symbol, spot price, 24h change %, and a notification bell toggle.
  *
- * @param coin [CryptoCoin] model containing rank, symbol, name, price, 24h change %, and imageUrl.
+ * @param coin [CryptoCoin] model.
+ * @param isNotified Whether this coin is currently pinned to the persistent notification.
+ * @param onToggleNotification Callback invoked when the bell icon is clicked.
  */
 @Composable
-fun CryptoRankCard(coin: CryptoCoin) {
+fun CryptoRankCard(
+    coin: CryptoCoin,
+    isNotified: Boolean,
+    onToggleNotification: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
@@ -205,16 +244,43 @@ fun CryptoRankCard(coin: CryptoCoin) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Side: Discreet Rank Number + API Coin Logo Image + Name & Symbol
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Discreet Rank Number (#1, #2, ... #10)
-                Text(
-                    text = "#${coin.rank}",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    modifier = Modifier.width(30.dp)
-                )
+            // Left Side: Minimalist Podium Badge (Top 3) or Discreet Rank + API Coin Logo Image + Name & Symbol
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Minimalist podium styling for Top 3 (Gold #1, Silver #2, Bronze #3)
+                val podiumColors = when (coin.rank) {
+                    1 -> Pair(Color(0xFFFFD700), Color(0xFF3E2723)) // Gold (Ouro)
+                    2 -> Pair(Color(0xFFCFD8DC), Color(0xFF263238)) // Silver (Prata)
+                    3 -> Pair(Color(0xFFD77A31), Color(0xFFFFFFFF)) // Bronze (Bronze)
+                    else -> null
+                }
+
+                if (podiumColors != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .background(podiumColors.first, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = coin.rank.toString(),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = podiumColors.second
+                        )
+                    }
+                } else {
+                    // Discreet rank number for ranks 4 to 10
+                    Text(
+                        text = "#${coin.rank}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.width(26.dp)
+                    )
+                }
 
                 // Coin Remote Logo Image via Coil
                 if (!coin.imageUrl.isNullOrBlank()) {
@@ -242,8 +308,6 @@ fun CryptoRankCard(coin: CryptoCoin) {
                     }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
                 // Name & Symbol
                 Column {
                     Text(
@@ -259,25 +323,55 @@ fun CryptoRankCard(coin: CryptoCoin) {
                 }
             }
 
-            // Right Side: Spot Price and 24-Hour Price Change Percentage
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = formatCurrencyUsd(coin.currentPriceUsd),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            // Right Side: Spot Price (with animation), 24h Change, and Polished Notification Bell Toggle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.End) {
+                    // AnimatedContent creates a smooth fade transition effect when price updates
+                    AnimatedContent(
+                        targetState = coin.currentPriceUsd,
+                        transitionSpec = {
+                            fadeIn() togetherWith fadeOut()
+                        },
+                        label = "priceAnimation"
+                    ) { price ->
+                        Text(
+                            text = formatCurrencyUsd(price),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
-                val isPositive = coin.priceChangePercentage24h >= 0
-                val changeColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFE53935)
-                val changeSign = if (isPositive) "+" else ""
+                    val isPositive = coin.priceChangePercentage24h >= 0
+                    val changeColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFE53935)
+                    val changeSign = if (isPositive) "+" else ""
 
-                Text(
-                    text = "$changeSign${String.format(Locale.US, "%.2f", coin.priceChangePercentage24h)}%",
-                    color = changeColor,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
+                    Text(
+                        text = "$changeSign${String.format(Locale.US, "%.2f", coin.priceChangePercentage24h)}%",
+                        color = changeColor,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+                }
+
+                // Polished Notification Bell Toggle Button
+                IconButton(
+                    onClick = onToggleNotification,
+                    modifier = Modifier
+                        .size(38.dp)
+                        .background(
+                            color = if (isNotified) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                            shape = CircleShape
+                        )
+                ) {
+                    Text(
+                        text = if (isNotified) "🔔" else "🔕",
+                        fontSize = 18.sp
+                    )
+                }
             }
         }
     }

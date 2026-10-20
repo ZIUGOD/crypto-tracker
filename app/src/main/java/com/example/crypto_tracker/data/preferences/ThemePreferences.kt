@@ -1,0 +1,38 @@
+package com.example.crypto_tracker.data.preferences
+
+import android.content.Context
+
+/**
+ * Enum representing the theme mode options available in the app.
+ */
+enum class ThemeMode {
+    SYSTEM, // Automatic (follows system theme)
+    LIGHT,  // Light theme
+    DARK    // Dark theme
+}
+
+/**
+ * Manages user theme preferences using SharedPreferences.
+ */
+class ThemePreferences(context: Context) {
+    private val prefs = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+
+    companion object {
+        private const val KEY_THEME_MODE = "theme_mode"
+    }
+
+    /**
+     * Retrieves the saved theme mode. Defaults to [ThemeMode.SYSTEM].
+     */
+    fun getThemeMode(): ThemeMode {
+        val modeName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
+        return runCatching { ThemeMode.valueOf(modeName) }.getOrDefault(ThemeMode.SYSTEM)
+    }
+
+    /**
+     * Saves the selected theme mode.
+     */
+    fun setThemeMode(mode: ThemeMode) {
+        prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+    }
+}
