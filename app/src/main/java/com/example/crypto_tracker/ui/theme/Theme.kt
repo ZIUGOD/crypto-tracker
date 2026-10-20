@@ -5,17 +5,36 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = GoldAccentLight,
-    secondary = GoldAccent,
-    tertiary = Pink80
+    background = DarkBgToken,
+    surface = DarkSurfaceToken,
+    surfaceVariant = DarkElevatedSurfaceToken,
+    outline = DarkBorderToken,
+    onBackground = DarkTextPrimaryToken,
+    onSurface = DarkTextPrimaryToken,
+    onSurfaceVariant = DarkTextSecondaryToken,
+    primary = DarkPrimaryTerminalToken,
+    onPrimary = Color.Black,
+    secondary = DarkGoldToken,
+    tertiary = DarkCyanToken,
+    error = DarkErrorToken
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = GoldAccent,
-    secondary = GoldAccentDark,
-    tertiary = Pink40
+    background = LightBgToken,
+    surface = LightSurfaceToken,
+    surfaceVariant = LightElevatedSurfaceToken,
+    outline = LightBorderToken,
+    onBackground = LightTextPrimaryToken,
+    onSurface = LightTextPrimaryToken,
+    onSurfaceVariant = LightTextSecondaryToken,
+    primary = LightPrimaryTerminalToken,
+    onPrimary = Color.White,
+    secondary = LightGoldToken,
+    tertiary = LightCyanToken,
+    error = LightErrorToken
 )
 
 @Composable

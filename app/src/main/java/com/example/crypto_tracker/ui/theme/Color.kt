@@ -2,15 +2,30 @@ package com.example.crypto_tracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Subtle and refined gold accent (used delicately for highlights and primary actions)
-val GoldAccent = Color(0xFFD4AF37)
-val GoldAccentLight = Color(0xFFE5C158)
-val GoldAccentDark = Color(0xFFA68525)
+// ==========================================
+// SEMANTIC COLOR TOKENS (Hacker / Tech Theme)
+// ==========================================
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// --- Dark Theme Tokens (Hacker Aesthetic) ---
+val DarkBgToken = Color(0xFF0B0F14)
+val DarkSurfaceToken = Color(0xFF121922)
+val DarkElevatedSurfaceToken = Color(0xFF1A2430)
+val DarkBorderToken = Color(0xFF303C49)
+val DarkTextPrimaryToken = Color(0xFFE8EEF5)
+val DarkTextSecondaryToken = Color(0xFFA4B1C0)
+val DarkPrimaryTerminalToken = Color(0xFF39FF88)
+val DarkGoldToken = Color(0xFFD4AF37)
+val DarkCyanToken = Color(0xFF55DFFF)
+val DarkErrorToken = Color(0xFFF04452)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// --- Light Theme Tokens (Clean Tech Identity) ---
+val LightBgToken = Color(0xFFF5F7FA)
+val LightSurfaceToken = Color(0xFFFFFFFF)
+val LightElevatedSurfaceToken = Color(0xFFE9EEF4)
+val LightBorderToken = Color(0xFFD3DCE6)
+val LightTextPrimaryToken = Color(0xFF18212B)
+val LightTextSecondaryToken = Color(0xFF526171)
+val LightPrimaryTerminalToken = Color(0xFF087A43)
+val LightGoldToken = Color(0xFF896600)
+val LightCyanToken = Color(0xFF006D91)
+val LightErrorToken = Color(0xFFC62836)

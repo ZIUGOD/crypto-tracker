@@ -1,10 +1,12 @@
 package com.example.crypto_tracker.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +26,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -55,6 +58,7 @@ import java.util.Locale
  * Main Home Screen displaying the top 10 cryptocurrencies ranked dynamically by market cap.
  *
  * Consumes [CryptoViewModel] following the MVVM architectural pattern.
+ * Uses semantic theme tokens for colors across components.
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
  * @param viewModel [CryptoViewModel] instance providing UI state and actions.
@@ -89,12 +93,13 @@ fun HomeScreen(
         Text(
             text = "Top 10 Cryptocurrencies 🏆",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "Select 🔔 to pin live prices to your notification bar",
+            text = "Pin up to ${NotificationPreferences.MAX_NOTIFIED_COINS} live prices to your notification bar",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -109,15 +114,20 @@ fun HomeScreen(
                 if (uiState is HomeUiState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Updating rankings...", fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = "Updating rankings...",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 } else {
                     Text(
                         text = "🔄 Auto-refreshes every 1 min",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -126,7 +136,7 @@ fun HomeScreen(
                 Text(
                     text = "Updated: ${currentState.lastUpdated}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -143,9 +153,12 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = "Loading top 10 market rankings...", color = Color.Gray)
+                        Text(
+                            text = "Loading top 10 market rankings...",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -180,13 +193,29 @@ fun HomeScreen(
                             coin = coin,
                             isNotified = isNotified,
                             onToggleNotification = {
-                                selectedNotifIds = if (isNotified) {
-                                    selectedNotifIds - coin.id
+                                if (isNotified) {
+                                    // Turn off notification
+                                    selectedNotifIds = selectedNotifIds - coin.id
+                                    notificationPrefs.setSelectedCoinIds(selectedNotifIds)
+                                    if (state.coins.isNotEmpty()) {
+                                        notificationManager.showPortfolioNotification(state.coins, selectedNotifIds)
+                                    }
                                 } else {
-                                    selectedNotifIds + coin.id
+                                    // Turn on notification, checking maximum limit of 5
+                                    if (selectedNotifIds.size >= NotificationPreferences.MAX_NOTIFIED_COINS) {
+                                        Toast.makeText(
+                                            context,
+                                            "Maximum of ${NotificationPreferences.MAX_NOTIFIED_COINS} cryptocurrencies allowed for notifications",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        selectedNotifIds = selectedNotifIds + coin.id
+                                        notificationPrefs.setSelectedCoinIds(selectedNotifIds)
+                                        if (state.coins.isNotEmpty()) {
+                                            notificationManager.showPortfolioNotification(state.coins, selectedNotifIds)
+                                        }
+                                    }
                                 }
-                                notificationPrefs.setSelectedCoinIds(selectedNotifIds)
-                                notificationManager.showPortfolioNotification(state.coins, selectedNotifIds)
                             }
                         )
                     }
@@ -199,11 +228,11 @@ fun HomeScreen(
 /**
  * Card composable representing a single cryptocurrency in the market ranking list.
  *
- * Displays minimalist podium badge for Top 3 (Gold, Silver, Bronze), remote API image logo, name, symbol, spot price, 24h change %, and a notification bell toggle.
+ * Uses semantic theme tokens for colors, borders, and surfaces, with fixed hexadecimal podium colors for Top 3.
  *
  * @param coin [CryptoCoin] model.
  * @param isNotified Whether this coin is currently pinned to the persistent notification.
- * @param onToggleNotification Callback invoked when the bell icon is clicked.
+ * @param onToggleNotification Callback invoked when the switch is toggled.
  */
 @Composable
 fun CryptoRankCard(
@@ -212,10 +241,16 @@ fun CryptoRankCard(
     onToggleNotification: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline,
+                shape = RoundedCornerShape(12.dp)
+            ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -226,12 +261,12 @@ fun CryptoRankCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Side: Minimalist Podium Badge (Top 3) or Discreet Rank + API Coin Logo Image + Name & Symbol
+            // Left Side: Podium Badge (Top 3) or Discreet Rank + API Coin Logo Image + Name & Symbol
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Podium styling for Top 3 (Gold #1, Silver #2, Bronze #3) with fixed high-contrast colors
+                // Fixed hexadecimal colors for Top 3 podium badges across all themes (Gold #1, Silver #2, Bronze #3)
                 val podiumColors = when (coin.rank) {
                     1 -> Pair(Color(0xFFFFD700), Color(0xFF3E2723)) // Gold (Ouro)
                     2 -> Pair(Color(0xFFCFD8DC), Color(0xFF263238)) // Silver (Prata)
@@ -259,7 +294,7 @@ fun CryptoRankCard(
                         text = "#${coin.rank}",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(26.dp)
                     )
                 }
@@ -295,20 +330,21 @@ fun CryptoRankCard(
                     Text(
                         text = coin.name,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = coin.symbol,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
                 }
             }
 
-            // Right Side: Spot Price (with animation), 24h Change, and Polished Notification Bell Toggle
+            // Right Side: Spot Price (with animation), 24h Change, and Polished Notification Switch Toggle
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Column(horizontalAlignment = Alignment.End) {
                     // AnimatedContent creates a smooth fade transition effect when price updates
@@ -323,12 +359,13 @@ fun CryptoRankCard(
                             text = formatCurrencyUsd(price),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     val isPositive = coin.priceChangePercentage24h >= 0
-                    val changeColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFE53935)
+                    // Use semantic tokens: primary (terminal green) for positive, error for negative
+                    val changeColor = if (isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     val changeSign = if (isPositive) "+" else ""
 
                     Text(
@@ -339,21 +376,17 @@ fun CryptoRankCard(
                     )
                 }
 
-                // Polished Notification Bell Toggle Button
-                IconButton(
-                    onClick = onToggleNotification,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .background(
-                            color = if (isNotified) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                            shape = CircleShape
-                        )
-                ) {
-                    Text(
-                        text = if (isNotified) "🔔" else "🔕",
-                        fontSize = 18.sp
+                // Modern Material 3 Switch Toggle for Notifications
+                Switch(
+                    checked = isNotified,
+                    onCheckedChange = { onToggleNotification() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
-                }
+                )
             }
         }
     }
