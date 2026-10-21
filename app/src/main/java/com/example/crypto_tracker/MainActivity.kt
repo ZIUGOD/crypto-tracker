@@ -65,14 +65,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Enqueue background worker to keep cryptocurrency prices updated in notifications
-        val workRequest = PeriodicWorkRequestBuilder<CryptoPriceWorker>(15, TimeUnit.MINUTES).build()
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "CryptoPriceSyncWork",
-            ExistingPeriodicWorkPolicy.KEEP,
-            workRequest
-        )
-
         val themePrefs = ThemePreferences(this)
 
         setContent {

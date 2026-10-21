@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Crypto Tracker</string>
+    <string name="google_web_client_id">991627423046-7kd35vtk9hiaqho3hvk08crosbrm5guv.apps.googleusercontent.com</string>
 </resources>

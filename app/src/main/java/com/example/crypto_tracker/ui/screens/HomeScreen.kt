@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import com.example.crypto_tracker.data.model.CryptoCoin
 import com.example.crypto_tracker.notification.CryptoNotificationManager
 import com.example.crypto_tracker.notification.NotificationPreferences
+import com.example.crypto_tracker.ui.components.UserAccountHeader
 import com.example.crypto_tracker.ui.viewmodel.CryptoViewModel
 import com.example.crypto_tracker.ui.viewmodel.HomeUiState
 import java.text.NumberFormat
@@ -75,20 +76,14 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
 
-    // Whenever successful state updates, trigger background notification update
-    val currentState = uiState
-    if (currentState is HomeUiState.Success) {
-        remember(currentState.coins) {
-            notificationManager.showPortfolioNotification(currentState.coins, selectedNotifIds)
-            true
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // User Account Header at the top
+        UserAccountHeader()
+
         // Section Header
         Text(
             text = "Top 10 Cryptocurrencies 🏆",
@@ -132,6 +127,7 @@ fun HomeScreen(
                 }
             }
 
+            val currentState = uiState
             if (currentState is HomeUiState.Success) {
                 Text(
                     text = "Updated: ${currentState.lastUpdated}",
