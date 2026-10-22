@@ -1,6 +1,7 @@
 package com.example.crypto_tracker.data.preferences
 
 import android.content.Context
+import com.example.crypto_tracker.config.AppConfig
 
 /**
  * Enum representing the theme mode options available in the app.
@@ -15,7 +16,7 @@ enum class ThemeMode {
  * Manages user theme preferences using SharedPreferences.
  */
 class ThemePreferences(context: Context) {
-    private val prefs = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(AppConfig.Storage.PREF_NAME_THEME, Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"

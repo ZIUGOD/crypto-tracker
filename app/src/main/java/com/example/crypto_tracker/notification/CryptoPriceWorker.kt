@@ -22,12 +22,13 @@ class CryptoPriceWorker(
             val result = repository.fetchTop10Cryptos()
             result.onSuccess { coins ->
                 if (coins.isNotEmpty()) {
-                    val selectedIds = prefs.getSelectedCoinIds()
+                    val top1Coin = coins.firstOrNull { it.rank == 1 } ?: coins.first()
+                    val selectedIds = prefs.ensureDefaultSelectionFromTop1(top1Coin.id)
                     notificationManager.showPortfolioNotification(coins, selectedIds)
                 }
             }
             Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Result.retry()
         }
     }

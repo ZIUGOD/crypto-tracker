@@ -5,9 +5,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,6 +32,7 @@ import androidx.core.content.ContextCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.notification.CryptoPriceWorker
@@ -64,6 +65,17 @@ class MainActivity : ComponentActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
+
+        // Enqueue background worker using AppConfig interval
+        val workRequest = PeriodicWorkRequestBuilder<CryptoPriceWorker>(
+            AppConfig.Timing.BACKGROUND_SYNC_INTERVAL_MINUTES,
+            TimeUnit.MINUTES
+        ).build()
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "CryptoPriceSyncWork",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
 
         val themePrefs = ThemePreferences(this)
 

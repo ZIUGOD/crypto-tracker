@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.example.crypto_tracker.MainActivity
 import com.example.crypto_tracker.R
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
 import java.util.Locale
 
@@ -15,11 +16,6 @@ import java.util.Locale
  * Manages notification channels and persistent status bar notifications for crypto prices.
  */
 class CryptoNotificationManager(private val context: Context) {
-
-    companion object {
-        const val CHANNEL_ID = "crypto_price_channel"
-        const val NOTIFICATION_ID = 1001
-    }
 
     init {
         createNotificationChannel()
@@ -29,7 +25,7 @@ class CryptoNotificationManager(private val context: Context) {
         val name = "Crypto Live Prices"
         val descriptionText = "Persistent notification keeping you updated with live crypto prices"
         val importance = NotificationManager.IMPORTANCE_LOW // Low priority so it sits quietly in the notification bar
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+        val channel = NotificationChannel(AppConfig.Notifications.CHANNEL_ID, name, importance).apply {
             description = descriptionText
         }
         val notificationManager: NotificationManager =
@@ -52,7 +48,7 @@ class CryptoNotificationManager(private val context: Context) {
             context, 0, intent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(context, AppConfig.Notifications.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(false) // Can be swiped away
@@ -60,7 +56,7 @@ class CryptoNotificationManager(private val context: Context) {
             .setContentIntent(pendingIntent)
 
         if (selectedCoins.size == 1) {
-            // Super simple: Title = Crypto Name, Text = Price and 24h change (no ticker symbol, no app name)
+            // Title = Crypto Name, Text = Price and 24h change (no ticker symbol, no app name)
             val coin = selectedCoins.first()
             val sign = if (coin.priceChangePercentage24h >= 0) "+" else ""
             val priceText = "$${String.format(Locale.US, "%,.2f", coin.currentPriceUsd)} ($sign${String.format(Locale.US, "%,.1f", coin.priceChangePercentage24h)}%)"
@@ -69,7 +65,7 @@ class CryptoNotificationManager(private val context: Context) {
                 .setContentTitle(coin.name)
                 .setContentText(priceText)
         } else {
-            // Multiple coins: Title = first coin name, InboxStyle with name and price only (no tickers, no app name)
+            // Multiple coins: Title = first coin name, InboxStyle with name and price only
             val firstCoin = selectedCoins.first()
             val firstSign = if (firstCoin.priceChangePercentage24h >= 0) "+" else ""
             val firstPrice = "$${String.format(Locale.US, "%,.2f", firstCoin.currentPriceUsd)} ($firstSign${String.format(Locale.US, "%,.1f", firstCoin.priceChangePercentage24h)}%)"
@@ -89,6 +85,6 @@ class CryptoNotificationManager(private val context: Context) {
         }
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+        notificationManager.notify(AppConfig.Notifications.NOTIFICATION_ID, notificationBuilder.build())
     }
 }

@@ -1,12 +1,13 @@
 package com.example.crypto_tracker.data.preferences
 
 import android.content.Context
+import com.example.crypto_tracker.config.AppConfig
 
 /**
  * Manages user authentication session state locally.
  */
 class SessionManager(context: Context) {
-    private val prefs = context.getSharedPreferences("session_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(AppConfig.Storage.PREF_NAME_SESSION, Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_IS_LOGGED_IN = "is_logged_in"

@@ -76,6 +76,22 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
 
+    // Dynamically ensure default notification selection from the #1 ranked coin when market data arrives
+    val currentState = uiState
+    if (currentState is HomeUiState.Success && currentState.coins.isNotEmpty()) {
+        val top1Coin = currentState.coins.firstOrNull { it.rank == 1 } ?: currentState.coins.first()
+        val effectiveNotifIds = remember(currentState.coins) {
+            notificationPrefs.ensureDefaultSelectionFromTop1(top1Coin.id)
+        }
+        if (selectedNotifIds.isEmpty() && effectiveNotifIds.isNotEmpty()) {
+            selectedNotifIds = effectiveNotifIds
+        }
+        remember(currentState.coins, effectiveNotifIds) {
+            notificationManager.showPortfolioNotification(currentState.coins, effectiveNotifIds)
+            true
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -127,7 +143,6 @@ fun HomeScreen(
                 }
             }
 
-            val currentState = uiState
             if (currentState is HomeUiState.Success) {
                 Text(
                     text = "Updated: ${currentState.lastUpdated}",

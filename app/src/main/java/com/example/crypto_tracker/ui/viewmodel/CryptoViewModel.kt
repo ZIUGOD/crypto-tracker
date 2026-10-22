@@ -2,8 +2,10 @@ package com.example.crypto_tracker.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
 import com.example.crypto_tracker.data.repository.CryptoRepository
+import com.example.crypto_tracker.data.repository.ICryptoRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +35,7 @@ sealed interface HomeUiState {
  * for [HomeScreen], ensuring a clean MVVM separation of concerns.
  */
 class CryptoViewModel(
-    private val repository: CryptoRepository = CryptoRepository()
+    private val repository: ICryptoRepository = CryptoRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -46,14 +48,14 @@ class CryptoViewModel(
     }
 
     /**
-     * Starts a periodic polling loop that fetches top 10 cryptos every 60 seconds.
+     * Starts a periodic polling loop that fetches top 10 cryptos based on [AppConfig.Timing.UI_POLLING_INTERVAL_MS].
      */
     fun startPollingPrices() {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
             while (isActive) {
                 fetchCryptos()
-                delay(60_000L) // 1 minute auto-refresh interval
+                delay(AppConfig.Timing.UI_POLLING_INTERVAL_MS)
             }
         }
     }

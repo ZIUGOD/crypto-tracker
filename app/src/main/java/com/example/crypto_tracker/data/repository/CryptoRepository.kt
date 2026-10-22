@@ -1,5 +1,6 @@
 package com.example.crypto_tracker.data.repository
 
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -9,12 +10,19 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Repository responsible for fetching cryptocurrency market data from remote REST APIs.
+ * Interface defining cryptocurrency repository contracts for clean testing and future data source swapping.
+ */
+interface ICryptoRepository {
+    suspend fun fetchTop10Cryptos(): Result<List<CryptoCoin>>
+}
+
+/**
+ * Primary repository implementation responsible for fetching cryptocurrency market data from remote REST APIs.
  *
  * Implements primary fetching from CoinGecko API and automatic fallback to CoinCap API
  * in case of rate-limiting or service unavailability.
  */
-class CryptoRepository {
+class CryptoRepository : ICryptoRepository {
 
     /**
      * Fetches the top 10 cryptocurrencies ordered dynamically by market capitalization rank.
@@ -23,16 +31,14 @@ class CryptoRepository {
      *
      * @return [Result] containing a sorted list of [CryptoCoin] on success, or an Exception on failure.
      */
-    suspend fun fetchTop10Cryptos(): Result<List<CryptoCoin>> = withContext(Dispatchers.IO) {
+    override suspend fun fetchTop10Cryptos(): Result<List<CryptoCoin>> = withContext(Dispatchers.IO) {
         runCatching {
-            // Primary API: CoinGecko markets endpoint sorted by market_cap_desc
-            val urlString = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false"
-            val url = URL(urlString)
+            val url = URL(AppConfig.Network.COINGECKO_TOP_10_URL)
 
             val connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
-                connectTimeout = 8000
-                readTimeout = 8000
+                connectTimeout = AppConfig.Network.CONNECT_TIMEOUT_MS
+                readTimeout = AppConfig.Network.READ_TIMEOUT_MS
                 setRequestProperty("Accept", "application/json")
             }
 
@@ -72,11 +78,11 @@ class CryptoRepository {
      * @throws Exception if connection fails or HTTP code is not OK.
      */
     private fun fetchTop10FromCoinCap(): List<CryptoCoin> {
-        val url = URL("https://api.coincap.io/v2/assets?limit=10")
+        val url = URL(AppConfig.Network.COINCAP_TOP_10_URL)
         val connection = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
-            connectTimeout = 8000
-            readTimeout = 8000
+            connectTimeout = AppConfig.Network.CONNECT_TIMEOUT_MS
+            readTimeout = AppConfig.Network.READ_TIMEOUT_MS
             setRequestProperty("Accept", "application/json")
         }
 
@@ -97,7 +103,7 @@ class CryptoRepository {
                         name = obj.getString("name"),
                         currentPriceUsd = obj.getString("priceUsd").toDoubleOrNull() ?: 0.0,
                         priceChangePercentage24h = obj.getString("changePercent24Hr").toDoubleOrNull() ?: 0.0,
-                        imageUrl = "https://assets.coincap.io/assets/icons/$symbolLower@2x.png"
+                        imageUrl = AppConfig.Network.coincapIconUrl(symbolLower)
                     )
                 )
             }
