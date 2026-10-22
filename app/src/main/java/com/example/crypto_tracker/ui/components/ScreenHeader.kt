@@ -13,7 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Standardized Header component used across all app screens for uniform title height, padding, and typography.
+ * Standardized Header component used across all app screens for uniform title height, padding, typography,
+ * and integrated Google AdMob Banner Ads.
  *
  * @param title Main headline text for the screen.
  * @param subtitle Descriptive subtitle text below headline.
@@ -30,8 +31,14 @@ fun ScreenHeader(
             .fillMaxWidth()
             .padding(bottom = 16.dp)
     ) {
-        // User Account Header at the top
+        // Responsive Google AdMob banner at the very top of every screen.
+        BannerAdView()
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         UserAccountHeader()
+
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = title,

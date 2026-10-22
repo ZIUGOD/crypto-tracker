@@ -53,6 +53,7 @@ import com.example.crypto_tracker.ui.screens.HomeScreen
 import com.example.crypto_tracker.ui.screens.NewsScreen
 import com.example.crypto_tracker.ui.screens.SettingsScreen
 import com.example.crypto_tracker.ui.theme.CryptotrackerTheme
+import com.google.android.gms.ads.MobileAds
 import java.util.concurrent.TimeUnit
 
 /**
@@ -69,6 +70,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Initialize the Mobile Ads SDK on main thread
+        MobileAds.initialize(this) {}
 
         // Request POST_NOTIFICATIONS permission on Android 13+ (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
