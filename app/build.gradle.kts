@@ -17,6 +17,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // A Web OAuth client ID identifies the backend that receives the Google ID
+        // token. Keep it configurable per developer/CI environment: an OAuth client
+        // from another Google Cloud project will fail after the account is selected.
+        val defaultGoogleWebClientId = "991627423046-113ifcnd1pk7o2052tq91e44n4pouub8.apps.googleusercontent.com"
+        val googleWebClientId = providers.gradleProperty("GOOGLE_WEB_CLIENT_ID")
+            .orElse(defaultGoogleWebClientId)
+            .get()
+        resValue("string", "google_web_client_id", googleWebClientId)
     }
 
     buildTypes {
@@ -33,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        resValues = true
     }
 }
 
@@ -49,11 +59,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)
     implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.coil.compose)
+    implementation(libs.googleid)
+    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

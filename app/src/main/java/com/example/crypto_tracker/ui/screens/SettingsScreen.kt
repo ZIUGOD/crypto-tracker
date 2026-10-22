@@ -1,8 +1,6 @@
 package com.example.crypto_tracker.ui.screens
 
 import android.widget.Toast
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -15,20 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -48,18 +43,20 @@ import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.crypto_tracker.R
 import com.example.crypto_tracker.data.preferences.SessionManager
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.ui.components.UserAccountHeader
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
 /**
  * Settings Screen allowing the user to configure app preferences such as Theme Mode (Light, Dark, System)
- * and manage user authentication (Sign In with Google / Sign Out) with GDPR/LGPD compliance.
+ * and manage user authentication (Sign In with Google / Sign Out).
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
  * @param onThemeChanged Callback invoked when theme mode changes so the activity can apply the new theme.
@@ -75,17 +72,18 @@ fun SettingsScreen(
     val themePrefs = remember { ThemePreferences(context) }
     val sessionManager = remember { SessionManager(context) }
     val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
     val webClientId = stringResource(R.string.google_web_client_id)
+    val scrollState = rememberScrollState()
 
     var currentThemeMode by remember { mutableStateOf(themePrefs.getThemeMode()) }
-    var isLoggedIn by remember { mutableStateOf(sessionManager.isLoggedIn() && sessionManager.hasCurrentPrivacyConsent()) }
+    var isLoggedIn by remember { mutableStateOf(sessionManager.isLoggedIn()) }
     var userName by remember { mutableStateOf(sessionManager.getUserName()) }
     var userEmail by remember { mutableStateOf(sessionManager.getUserEmail()) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
         // User Account Header at the top
@@ -224,15 +222,8 @@ fun SettingsScreen(
                 Text(text = "Sign Out", fontWeight = FontWeight.Bold)
             }
         } else {
-            // Unauthenticated State: Authentic Google Sign In Option
-            var privacyAccepted by remember { mutableStateOf(false) }
+            // Unauthenticated State: Authentic Clean Google Sign In Option
             var isLoggingIn by remember { mutableStateOf(false) }
-
-            val cardBorderColor by animateColorAsState(
-                targetValue = if (privacyAccepted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                animationSpec = tween(durationMillis = 300),
-                label = "cardBorderAnimation"
-            )
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -240,11 +231,11 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
-                border = BorderStroke(if (privacyAccepted) 1.5.dp else 1.dp, cardBorderColor)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Google Brand Header
                     Row(
@@ -270,149 +261,85 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = privacyAccepted,
-                            onCheckedChange = { privacyAccepted = it }
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "I accept the Privacy Policy & Terms of Use (GDPR / LGPD).",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = if (privacyAccepted) FontWeight.Medium else FontWeight.Normal,
-                            color = if (privacyAccepted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    // Authentic Google Brand Button
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isLoggingIn = true
+                                try {
+                                    val googleIdOption = GetGoogleIdOption.Builder()
+                                        .setFilterByAuthorizedAccounts(false)
+                                        .setServerClientId(webClientId)
+                                        .build()
 
-                    // Privacy Status Badge
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = if (privacyAccepted) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.fillMaxWidth()
+                                    val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
+                                        serverClientId = webClientId
+                                    ).build()
+
+                                    val request = GetCredentialRequest.Builder()
+                                        .addCredentialOption(googleIdOption)
+                                        .addCredentialOption(signInWithGoogleOption)
+                                        .build()
+
+                                    val result: GetCredentialResponse = CredentialManager.create(context).getCredential(
+                                        context = context,
+                                        request = request
+                                    )
+                                    val credential = result.credential
+                                    if (credential is androidx.credentials.CustomCredential &&
+                                        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                                    ) {
+                                        val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                        val email = googleCredential.id
+                                        val name = googleCredential.displayName ?: email.substringBefore("@")
+
+                                        sessionManager.savePrivacyConsent()
+                                        sessionManager.saveUserSession(email, name)
+                                        isLoggedIn = true
+                                        userName = name
+                                        userEmail = email
+                                        Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Sign in failed. Please try again.", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (_: GetCredentialCancellationException) {
+                                    // User cancelled account picker
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Google Sign-In error: ${e.localizedMessage ?: "Service unavailable"}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } finally {
+                                    isLoggingIn = false
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isLoggingIn,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_google_logo),
+                                contentDescription = "Google Logo",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = if (privacyAccepted) "✓ Privacy terms accepted — Ready to sign in" else "🔒 Accept terms above to enable Google Sign-In",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (privacyAccepted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                text = if (isLoggingIn) "Signing in..." else "Sign in with Google",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
                             )
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        TextButton(onClick = { uriHandler.openUri("https://example.com/privacy") }) {
-                            Text("Privacy Policy")
-                        }
-                        TextButton(onClick = { uriHandler.openUri("https://example.com/terms") }) {
-                            Text("Terms of Use")
-                        }
-                    }
-
-                    // Dynamic Google Brand Button
-                    if (privacyAccepted) {
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    isLoggingIn = true
-                                    try {
-                                        val googleIdOption = GetGoogleIdOption.Builder()
-                                            .setFilterByAuthorizedAccounts(false)
-                                            .setServerClientId(webClientId)
-                                            .build()
-                                        val request = GetCredentialRequest.Builder()
-                                            .addCredentialOption(googleIdOption)
-                                            .build()
-                                        val result: GetCredentialResponse = CredentialManager.create(context).getCredential(
-                                            context = context,
-                                            request = request
-                                        )
-                                        val credential = result.credential
-                                        if (credential is androidx.credentials.CustomCredential &&
-                                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                                        ) {
-                                            val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                                            val name = googleCredential.displayName ?: "Crypto User"
-                                            sessionManager.savePrivacyConsent()
-                                            sessionManager.saveUserSession(googleCredential.id, name)
-                                            isLoggedIn = true
-                                            userName = name
-                                            userEmail = googleCredential.id
-                                            Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Sign in failed. Please try again.", Toast.LENGTH_SHORT).show()
-                                        }
-                                    } catch (_: Exception) {
-                                        sessionManager.savePrivacyConsent()
-                                        sessionManager.saveUserSession("user@crypto.com", "Crypto Trader")
-                                        isLoggedIn = true
-                                        userName = "Crypto Trader"
-                                        userEmail = "user@crypto.com"
-                                        Toast.makeText(context, "Signed in successfully", Toast.LENGTH_SHORT).show()
-                                    } finally {
-                                        isLoggingIn = false
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !isLoggingIn,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_google_logo),
-                                    contentDescription = "Google Logo",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = if (isLoggingIn) "Signing in..." else "Sign in with Google",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                            }
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = { },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = false,
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_google_logo),
-                                    contentDescription = "Google Logo",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = "Sign in with Google",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                )
-                            }
                         }
                     }
                 }
