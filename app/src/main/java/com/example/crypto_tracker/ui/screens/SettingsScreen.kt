@@ -18,10 +18,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -48,15 +51,15 @@ import com.example.crypto_tracker.R
 import com.example.crypto_tracker.data.preferences.SessionManager
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
-import com.example.crypto_tracker.ui.components.UserAccountHeader
+import com.example.crypto_tracker.ui.components.ScreenHeader
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
 /**
- * Settings Screen allowing the user to configure app preferences such as Theme Mode (Light, Dark, System)
- * and manage user authentication (Sign In with Google / Sign Out).
+ * Settings Screen allowing the user to configure app preferences such as Theme Mode (Light, Dark, System),
+ * manage user authentication (Sign In with Google / Sign Out), and view app purpose information.
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
  * @param onThemeChanged Callback invoked when theme mode changes so the activity can apply the new theme.
@@ -86,22 +89,11 @@ fun SettingsScreen(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        // User Account Header at the top
-        UserAccountHeader()
-
-        Text(
-            text = "Settings ⚙️",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+        // Standardized Screen Header
+        ScreenHeader(
+            title = "Settings ⚙️",
+            subtitle = "Customize your app preferences and account"
         )
-        Text(
-            text = "Customize your app preferences and account",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = "App Theme",
@@ -344,6 +336,99 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // About / App Purpose Info Section
+        Text(
+            text = "About Crypto Tracker",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "App Purpose Info",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Text(
+                        text = "App Purpose & Features",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Text(
+                    text = "Crypto Tracker provides fast, hassle-free market visibility for active crypto traders and enthusiasts.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                AppFeatureBullet(
+                    icon = "🏆",
+                    title = "Top 10 Live Rankings",
+                    description = "Real-time market cap rankings updated automatically every 1 minute."
+                )
+
+                AppFeatureBullet(
+                    icon = "🔔",
+                    title = "Status Bar Notifications",
+                    description = "Pin up to 5 favorite coins to check live prices instantly without opening the app."
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun AppFeatureBullet(
+    icon: String,
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(text = icon, fontSize = 16.sp)
+        Column {
+            Text(
+                text = title,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

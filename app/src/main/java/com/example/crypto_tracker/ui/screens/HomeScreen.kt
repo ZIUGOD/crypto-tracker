@@ -49,7 +49,7 @@ import coil.compose.AsyncImage
 import com.example.crypto_tracker.data.model.CryptoCoin
 import com.example.crypto_tracker.notification.CryptoNotificationManager
 import com.example.crypto_tracker.notification.NotificationPreferences
-import com.example.crypto_tracker.ui.components.UserAccountHeader
+import com.example.crypto_tracker.ui.components.ScreenHeader
 import com.example.crypto_tracker.ui.viewmodel.CryptoViewModel
 import com.example.crypto_tracker.ui.viewmodel.HomeUiState
 import java.text.NumberFormat
@@ -97,23 +97,11 @@ fun HomeScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // User Account Header at the top
-        UserAccountHeader()
-
-        // Section Header
-        Text(
-            text = "Top 10 Cryptocurrencies 🏆",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+        // Standardized Screen Header
+        ScreenHeader(
+            title = "Top 10 Cryptocurrencies 🏆",
+            subtitle = "Pin up to ${NotificationPreferences.MAX_NOTIFIED_COINS} live prices to your notification bar"
         )
-        Text(
-            text = "Pin up to ${NotificationPreferences.MAX_NOTIFIED_COINS} live prices to your notification bar",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
 
         // Status Bar (Loading Indicator / Refresh Note / Timestamp)
         Row(

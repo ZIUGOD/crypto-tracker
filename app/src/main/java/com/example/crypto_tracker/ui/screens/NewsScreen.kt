@@ -2,10 +2,8 @@ package com.example.crypto_tracker.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -16,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.crypto_tracker.ui.components.UserAccountHeader
+import com.example.crypto_tracker.ui.components.ScreenHeader
 
 /**
  * News Screen composable displaying recent market news headlines.
@@ -29,25 +27,13 @@ fun NewsScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(16.dp)
     ) {
-        // User Account Header at the top
-        UserAccountHeader()
-
-        Text(
-            text = "Market News 📰",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
+        // Standardized Screen Header
+        ScreenHeader(
+            title = "Market News 📰",
+            subtitle = "Latest headlines and market updates"
         )
-        Text(
-            text = "Latest headlines and market updates",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
