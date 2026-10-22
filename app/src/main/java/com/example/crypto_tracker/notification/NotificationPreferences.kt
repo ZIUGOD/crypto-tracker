@@ -5,7 +5,7 @@ import com.example.crypto_tracker.config.AppConfig
 
 /**
  * Manages user preferences for which cryptocurrencies should be tracked in the persistent notification.
- * Dynamically derives default selections from the #1 ranked market cryptocurrency.
+ * Pre-selects the #1 ranked market cryptocurrency on first launch, allowing 0 to 5 selections thereafter.
  */
 class NotificationPreferences(context: Context) {
     private val prefs = context.getSharedPreferences(AppConfig.Storage.PREF_NAME_NOTIFICATIONS, Context.MODE_PRIVATE)
@@ -23,9 +23,18 @@ class NotificationPreferences(context: Context) {
 
     /**
      * Returns the set of coin IDs selected by the user for notifications.
-     * Returns empty set if no preferences have been saved or initialized yet.
+     * Defaults to Bitcoin ("bitcoin") on first ever app launch.
      */
     fun getSelectedCoinIds(): Set<String> {
+        val hasInitialized = prefs.getBoolean(KEY_HAS_INITIALIZED_DEFAULT, false)
+        if (!hasInitialized) {
+            val defaultSet = setOf("bitcoin")
+            prefs.edit()
+                .putStringSet(KEY_SELECTED_IDS, defaultSet)
+                .putBoolean(KEY_HAS_INITIALIZED_DEFAULT, true)
+                .apply()
+            return defaultSet
+        }
         return prefs.getStringSet(KEY_SELECTED_IDS, emptySet()) ?: emptySet()
     }
 
@@ -41,15 +50,12 @@ class NotificationPreferences(context: Context) {
     }
 
     /**
-     * Ensures a default notification selection using the #1 ranked cryptocurrency ID
-     * if the user has not explicitly configured custom preferences yet.
-     *
-     * @param top1CoinId ID of the #1 market cap ranked cryptocurrency.
-     * @return Effective set of selected coin IDs.
+     * Ensures default notification selection using the #1 ranked cryptocurrency ID on first launch.
      */
     fun ensureDefaultSelectionFromTop1(top1CoinId: String): Set<String> {
+        val hasInitialized = prefs.getBoolean(KEY_HAS_INITIALIZED_DEFAULT, false)
         val currentIds = getSelectedCoinIds()
-        if (currentIds.isEmpty() && !prefs.getBoolean(KEY_HAS_INITIALIZED_DEFAULT, false)) {
+        if (!hasInitialized) {
             val defaultSet = setOf(top1CoinId)
             prefs.edit()
                 .putStringSet(KEY_SELECTED_IDS, defaultSet)

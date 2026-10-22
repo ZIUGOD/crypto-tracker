@@ -24,10 +24,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -48,12 +51,12 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.crypto_tracker.R
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.SessionManager
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.ui.components.ScreenHeader
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
@@ -75,6 +78,7 @@ fun SettingsScreen(
     val themePrefs = remember { ThemePreferences(context) }
     val sessionManager = remember { SessionManager(context) }
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
     val webClientId = stringResource(R.string.google_web_client_id)
     val scrollState = rememberScrollState()
 
@@ -82,6 +86,8 @@ fun SettingsScreen(
     var isLoggedIn by remember { mutableStateOf(sessionManager.isLoggedIn()) }
     var userName by remember { mutableStateOf(sessionManager.getUserName()) }
     var userEmail by remember { mutableStateOf(sessionManager.getUserEmail()) }
+    var isLoggingIn by remember { mutableStateOf(false) }
+    var privacyAccepted by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -215,8 +221,6 @@ fun SettingsScreen(
             }
         } else {
             // Unauthenticated State: Authentic Clean Google Sign In Option
-            var isLoggingIn by remember { mutableStateOf(false) }
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -253,7 +257,62 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Privacy and data protection",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "We use your name and email only to authenticate your account and sync your preferences. We do not sell your personal data.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = privacyAccepted,
+                                    onCheckedChange = { privacyAccepted = it }
+                                )
+                                Text(
+                                    text = "I accept the Privacy Policy and Terms of Use.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL)
+                                    }
+                                ) {
+                                    Text("Privacy Policy")
+                                }
+                                TextButton(
+                                    onClick = {
+                                        uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL)
+                                    }
+                                ) {
+                                    Text("Terms of Use")
+                                }
+                            }
+                        }
+                    }
 
                     // Authentic Google Brand Button
                     Button(
@@ -266,13 +325,8 @@ fun SettingsScreen(
                                         .setServerClientId(webClientId)
                                         .build()
 
-                                    val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(
-                                        serverClientId = webClientId
-                                    ).build()
-
                                     val request = GetCredentialRequest.Builder()
                                         .addCredentialOption(googleIdOption)
-                                        .addCredentialOption(signInWithGoogleOption)
                                         .build()
 
                                     val result: GetCredentialResponse = CredentialManager.create(context).getCredential(
@@ -310,7 +364,7 @@ fun SettingsScreen(
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoggingIn,
+                        enabled = privacyAccepted && !isLoggingIn,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -397,6 +451,12 @@ fun SettingsScreen(
                     icon = "🔔",
                     title = "Status Bar Notifications",
                     description = "Pin up to 5 favorite coins to check live prices instantly without opening the app."
+                )
+
+                AppFeatureBullet(
+                    icon = "🔒",
+                    title = "Privacy & Local Data",
+                    description = "Your preferences are stored locally with optional Google Account sync."
                 )
             }
         }

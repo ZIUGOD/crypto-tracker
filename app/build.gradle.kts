@@ -10,7 +10,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.crypto_tracker"
+        // Production package. It must be registered in the Android OAuth client.
+        applicationId = "com.cryptotracker.app"
         minSdk = 28
         targetSdk = 37
         versionCode = 1
@@ -21,7 +22,7 @@ android {
         // A Web OAuth client ID identifies the backend that receives the Google ID
         // token. Keep it configurable per developer/CI environment: an OAuth client
         // from another Google Cloud project will fail after the account is selected.
-        val defaultGoogleWebClientId = "991627423046-113ifcnd1pk7o2052tq91e44n4pouub8.apps.googleusercontent.com"
+        val defaultGoogleWebClientId = "991627423046-1h46ij6ki5f4722t3bqbar13euvbq80m.apps.googleusercontent.com"
         val googleWebClientId = providers.gradleProperty("GOOGLE_WEB_CLIENT_ID")
             .orElse(defaultGoogleWebClientId)
             .get()

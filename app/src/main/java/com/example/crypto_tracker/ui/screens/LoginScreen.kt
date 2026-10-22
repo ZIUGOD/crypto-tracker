@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.crypto_tracker.R
 import com.example.crypto_tracker.data.preferences.SessionManager
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -113,6 +114,17 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    TextButton(onClick = { uriHandler.openUri("https://example.com/privacy") }) {
+                        Text("Privacy Policy")
+                    }
+                    TextButton(onClick = { uriHandler.openUri("https://example.com/terms") }) {
+                        Text("Terms of Use")
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = privacyAccepted,
@@ -124,17 +136,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    TextButton(onClick = { uriHandler.openUri("https://example.com/privacy") }) {
-                        Text("Privacy Policy")
-                    }
-                    TextButton(onClick = { uriHandler.openUri("https://example.com/terms") }) {
-                        Text("Terms of Use")
-                    }
                 }
             }
         }
@@ -169,12 +170,14 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         } else {
                             Toast.makeText(context, "Sign in failed. Please try again.", Toast.LENGTH_SHORT).show()
                         }
-                    } catch (_: Exception) {
-                        // Demo mode fallback if Web Client ID is placeholder
-                        sessionManager.savePrivacyConsent()
-                        sessionManager.saveUserSession("user@crypto.com", "Crypto Trader")
-                        Toast.makeText(context, "Signed in successfully", Toast.LENGTH_SHORT).show()
-                        onLoginSuccess()
+                    } catch (_: GetCredentialCancellationException) {
+                        // The account picker was dismissed; do not alter the current session.
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context,
+                            "Google Sign-In error: ${e.localizedMessage ?: "Service unavailable"}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     } finally {
                         isLoading = false
                     }

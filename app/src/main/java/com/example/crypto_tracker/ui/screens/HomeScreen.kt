@@ -86,7 +86,7 @@ fun HomeScreen(
     var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
     var expandedCoinId by remember { mutableStateOf<String?>(null) }
 
-    // Dynamically ensure default notification selection from the #1 ranked coin when market data arrives
+    // Dynamically ensure default notification selection from the #1 ranked coin on first launch
     val currentState = uiState
     if (currentState is HomeUiState.Success && currentState.coins.isNotEmpty()) {
         val top1Coin = currentState.coins.firstOrNull { it.rank == 1 } ?: currentState.coins.first()
@@ -483,7 +483,7 @@ fun CryptoRankCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
