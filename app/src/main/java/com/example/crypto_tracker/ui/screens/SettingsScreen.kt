@@ -280,21 +280,8 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = privacyAccepted,
-                                    onCheckedChange = { privacyAccepted = it }
-                                )
-                                Text(
-                                    text = "I accept the Privacy Policy and Terms of Use.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 TextButton(
                                     onClick = {
@@ -310,6 +297,19 @@ fun SettingsScreen(
                                 ) {
                                     Text("Terms of Use")
                                 }
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = privacyAccepted,
+                                    onCheckedChange = { privacyAccepted = it }
+                                )
+                                Text(
+                                    text = "I accept the Privacy Policy and Terms of Use.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }

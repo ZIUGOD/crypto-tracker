@@ -20,14 +20,14 @@ object AppConfig {
          * Single master height value (X) for the bottom navigation bar in dp.
          * Standard Material 3 height is 80dp. Adjusting this value automatically scales icon sizes proportionally.
          */
-        const val NAV_BAR_HEIGHT_DP = 80
+        const val NAV_BAR_HEIGHT_DP = 72
 
         /**
          * Automatically calculates icon size proportionally based on [NAV_BAR_HEIGHT_DP].
          * Maintains standard Material 3 ratio (~30% of bar height, e.g., 24dp for 80dp height).
          */
         val NAV_BAR_ICON_SIZE_DP: Int
-            get() = (NAV_BAR_HEIGHT_DP * 0.4f).toInt().coerceAtLeast(16)
+            get() = (NAV_BAR_HEIGHT_DP * 0.50f).toInt().coerceAtLeast(16)
     }
 
     // Network & API Endpoints

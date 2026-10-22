@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +51,7 @@ import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.notification.CryptoPriceWorker
+import com.example.crypto_tracker.ui.components.BannerAdView
 import com.example.crypto_tracker.ui.screens.HomeScreen
 import com.example.crypto_tracker.ui.screens.NewsScreen
 import com.example.crypto_tracker.ui.screens.SettingsScreen
@@ -132,6 +135,15 @@ fun CryptotrackerApp(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        topBar = {
+            // Single pinned banner shared by all screens: stays fixed while content scrolls
+            // and is not reloaded on every tab switch.
+            BannerAdView(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .statusBarsPadding()
+            )
+        },
         bottomBar = {
             Surface(
                 tonalElevation = 3.dp,

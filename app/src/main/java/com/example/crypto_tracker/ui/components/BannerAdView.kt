@@ -60,14 +60,15 @@ fun BannerAdView(
         }
     }
 
-    if (!adFailedToLoad) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-            contentAlignment = Alignment.Center
-        ) {
+    // The slot keeps its height even when no ad is filled, so content below never jumps.
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (!adFailedToLoad) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { adView }
