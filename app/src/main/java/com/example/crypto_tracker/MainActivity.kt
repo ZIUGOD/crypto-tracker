@@ -8,26 +8,39 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -101,7 +114,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Top-level application composable managing adaptive navigation scaffold and destination screens.
+ * Top-level application composable managing customizable bottom navigation scaffold and destination screens.
  *
  * @param onThemeChanged Callback invoked when theme mode changes.
  */
@@ -113,32 +126,70 @@ fun CryptotrackerApp(
     // Retains selected destination state across configuration changes
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            painterResource(it.icon),
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            Surface(
+                tonalElevation = 3.dp,
+                shadowElevation = 8.dp
+            ) {
+                NavigationBar(
+                    modifier = Modifier.height(AppConfig.Navigation.NAV_BAR_HEIGHT_DP.dp),
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AppDestinations.entries.forEach { destination ->
+                            val isSelected = destination == currentDestination
+                            val contentColor = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+
+                            Column(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { currentDestination = destination }
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(destination.icon),
+                                    contentDescription = destination.label,
+                                    tint = contentColor,
+                                    modifier = Modifier.size(AppConfig.Navigation.NAV_BAR_ICON_SIZE_DP.dp)
+                                )
+                                if (AppConfig.Navigation.SHOW_NAVIGATION_LABELS) {
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = destination.label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = contentColor
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-    ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            when (currentDestination) {
-                AppDestinations.HOME -> HomeScreen(modifier = Modifier.padding(innerPadding))
-                AppDestinations.NEWS -> NewsScreen(modifier = Modifier.padding(innerPadding))
-                AppDestinations.SETTINGS -> SettingsScreen(
-                    modifier = Modifier.padding(innerPadding),
-                    onThemeChanged = onThemeChanged
-                )
-            }
+    ) { innerPadding ->
+        when (currentDestination) {
+            AppDestinations.HOME -> HomeScreen(modifier = Modifier.padding(innerPadding))
+            AppDestinations.NEWS -> NewsScreen(modifier = Modifier.padding(innerPadding))
+            AppDestinations.SETTINGS -> SettingsScreen(
+                modifier = Modifier.padding(innerPadding),
+                onThemeChanged = onThemeChanged
+            )
         }
     }
 }

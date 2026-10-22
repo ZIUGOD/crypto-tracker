@@ -50,15 +50,24 @@ class CryptoRepository : ICryptoRepository {
                 val coins = mutableListOf<CryptoCoin>()
                 for (i in 0 until jsonArray.length()) {
                     val obj = jsonArray.getJSONObject(i)
+                    val id = obj.getString("id")
+                    val name = obj.getString("name")
+                    val symbol = obj.getString("symbol").uppercase()
+
                     coins.add(
                         CryptoCoin(
-                            id = obj.getString("id"),
+                            id = id,
                             rank = obj.optInt("market_cap_rank", i + 1),
-                            symbol = obj.getString("symbol").uppercase(),
-                            name = obj.getString("name"),
+                            symbol = symbol,
+                            name = name,
                             currentPriceUsd = obj.getDouble("current_price"),
                             priceChangePercentage24h = obj.optDouble("price_change_percentage_24h", 0.0),
-                            imageUrl = obj.optString("image").takeIf { it.isNotBlank() }
+                            imageUrl = obj.optString("image").takeIf { it.isNotBlank() },
+                            high24hUsd = obj.optDouble("high_24h", 0.0).takeIf { !it.isNaN() },
+                            low24hUsd = obj.optDouble("low_24h", 0.0).takeIf { !it.isNaN() },
+                            marketCapUsd = obj.optDouble("market_cap", 0.0).takeIf { !it.isNaN() },
+                            totalVolumeUsd = obj.optDouble("total_volume", 0.0).takeIf { !it.isNaN() },
+                            description = getCoinDescription(id, name, symbol)
                         )
                     )
                 }
@@ -94,22 +103,48 @@ class CryptoRepository : ICryptoRepository {
             val coins = mutableListOf<CryptoCoin>()
             for (i in 0 until dataArray.length()) {
                 val obj = dataArray.getJSONObject(i)
-                val symbolLower = obj.getString("symbol").lowercase()
+                val id = obj.getString("id")
+                val name = obj.getString("name")
+                val symbol = obj.getString("symbol").uppercase()
+                val symbolLower = symbol.lowercase()
+
                 coins.add(
                     CryptoCoin(
-                        id = obj.getString("id"),
+                        id = id,
                         rank = obj.optInt("rank", i + 1),
-                        symbol = obj.getString("symbol").uppercase(),
-                        name = obj.getString("name"),
+                        symbol = symbol,
+                        name = name,
                         currentPriceUsd = obj.getString("priceUsd").toDoubleOrNull() ?: 0.0,
                         priceChangePercentage24h = obj.getString("changePercent24Hr").toDoubleOrNull() ?: 0.0,
-                        imageUrl = AppConfig.Network.coincapIconUrl(symbolLower)
+                        imageUrl = AppConfig.Network.coincapIconUrl(symbolLower),
+                        marketCapUsd = obj.getString("marketCapUsd").toDoubleOrNull(),
+                        totalVolumeUsd = obj.getString("volumeUsd24Hr").toDoubleOrNull(),
+                        description = getCoinDescription(id, name, symbol)
                     )
                 )
             }
             return coins.sortedBy { it.rank }
         } else {
             throw Exception("API HTTP error code: ${connection.responseCode}")
+        }
+    }
+
+    /**
+     * Returns a concise, helpful summary description for top cryptocurrencies.
+     */
+    private fun getCoinDescription(id: String, name: String, symbol: String): String {
+        return when (id.lowercase()) {
+            "bitcoin" -> "Bitcoin (BTC) is the world's first decentralized peer-to-peer digital currency, designed to act as a store of value and digital gold."
+            "ethereum" -> "Ethereum (ETH) is a decentralized smart contract platform that powers decentralized applications (dApps), DeFi, and Web3 ecosystems."
+            "tether" -> "Tether (USDt) is a pioneer fiat-collateralized stablecoin pegged 1:1 to the US Dollar to provide stability in crypto markets."
+            "binancecoin", "bnb" -> "BNB powers the BNB Chain ecosystem, offering utility for trading fee discounts, DeFi protocols, and smart contracts."
+            "solana" -> "Solana (SOL) is a high-performance blockchain built for speed and low-cost transactions, supporting NFTs, DeFi, and Web3."
+            "ripple", "xrp" -> "XRP is designed for fast, low-cost global cross-border payments and financial institution remittances."
+            "usd-coin" -> "USDC is a fully backed US Dollar stablecoin providing dollar liquidity and instant settlement across Web3."
+            "cardano" -> "Cardano (ADA) is a proof-of-stake blockchain platform designed for security, sustainability, and peer-reviewed smart contracts."
+            "dogecoin" -> "Dogecoin (DOGE) is an open-source peer-to-peer cryptocurrency born from internet meme culture with a vibrant community."
+            "avalanche-2", "avalanche" -> "Avalanche (AVAX) is an ultra-fast smart contract platform designed for scalable enterprise and DeFi applications."
+            else -> "$name ($symbol) is one of the top cryptocurrencies globally by market capitalization."
         }
     }
 }

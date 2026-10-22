@@ -2,11 +2,13 @@ package com.example.crypto_tracker.ui.screens
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,11 +24,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -41,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,8 +67,8 @@ import java.util.Locale
 /**
  * Main Home Screen displaying the top 10 cryptocurrencies ranked dynamically by market cap.
  *
- * Consumes [CryptoViewModel] following the MVVM architectural pattern.
- * Uses semantic theme tokens for colors across components.
+ * Features smooth accordion expandable cards (single expanded card at a time) displaying market metrics
+ * (24h High/Low, Market Cap, 24h Volume, cryptocurrency summaries, and integrated web details bottom bar).
  *
  * @param modifier Layout modifier passed from parent scaffold padding.
  * @param viewModel [CryptoViewModel] instance providing UI state and actions.
@@ -75,6 +84,7 @@ fun HomeScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     var selectedNotifIds by remember { mutableStateOf(notificationPrefs.getSelectedCoinIds()) }
+    var expandedCoinId by remember { mutableStateOf<String?>(null) }
 
     // Dynamically ensure default notification selection from the #1 ranked coin when market data arrives
     val currentState = uiState
@@ -188,9 +198,15 @@ fun HomeScreen(
                 ) {
                     items(state.coins) { coin ->
                         val isNotified = selectedNotifIds.contains(coin.id)
+                        val isExpanded = expandedCoinId == coin.id
+
                         CryptoRankCard(
                             coin = coin,
                             isNotified = isNotified,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                expandedCoinId = if (isExpanded) null else coin.id
+                            },
                             onToggleNotification = {
                                 if (isNotified) {
                                     // Turn off notification
@@ -226,168 +242,295 @@ fun HomeScreen(
 
 /**
  * Card composable representing a single cryptocurrency in the market ranking list.
- *
- * Uses semantic theme tokens for colors, borders, and surfaces, with fixed hexadecimal podium colors for Top 3.
+ * Supports smooth accordion expansion showing 24h High/Low, Market Cap, 24h Volume, summary description,
+ * and an integrated bottom bar for web details.
  *
  * @param coin [CryptoCoin] model.
  * @param isNotified Whether this coin is currently pinned to the persistent notification.
- * @param onToggleNotification Callback invoked when the switch is toggled.
+ * @param isExpanded Whether this card is currently expanded to display detailed market stats.
+ * @param onToggleExpand Callback invoked when card header is tapped to toggle expansion.
+ * @param onToggleNotification Callback invoked when notification switch is toggled.
  */
 @Composable
 fun CryptoRankCard(
     coin: CryptoCoin,
     isNotified: Boolean,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
     onToggleNotification: () -> Unit
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize()
             .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
+                width = if (isExpanded) 1.5.dp else 1.dp,
+                color = if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(12.dp)
-            ),
+            )
+            .clickable { onToggleExpand() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 4.dp else 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Left Side: Podium Badge (Top 3) or Discreet Rank + API Coin Logo Image + Name & Symbol
+            // Main Summary Header Row (with internal padding)
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Fixed hexadecimal colors for Top 3 podium badges across all themes (Gold #1, Silver #2, Bronze #3)
-                val podiumColors = when (coin.rank) {
-                    1 -> Pair(Color(0xFFFFD700), Color(0xFF3E2723)) // Gold (Ouro)
-                    2 -> Pair(Color(0xFFCFD8DC), Color(0xFF263238)) // Silver (Prata)
-                    3 -> Pair(Color(0xFFD77A31), Color(0xFFFFFFFF)) // Bronze (Bronze)
-                    else -> null
-                }
+                // Left Side: Podium Badge (Top 3) or Rank + Logo + Name & Symbol + Chevron Indicator
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    val podiumColors = when (coin.rank) {
+                        1 -> Pair(Color(0xFFFFD700), Color(0xFF3E2723)) // Gold
+                        2 -> Pair(Color(0xFFCFD8DC), Color(0xFF263238)) // Silver
+                        3 -> Pair(Color(0xFFD77A31), Color(0xFFFFFFFF)) // Bronze
+                        else -> null
+                    }
 
-                if (podiumColors != null) {
-                    Box(
-                        modifier = Modifier
-                            .size(26.dp)
-                            .background(podiumColors.first, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    if (podiumColors != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .background(podiumColors.first, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = coin.rank.toString(),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = podiumColors.second
+                            )
+                        }
+                    } else {
                         Text(
-                            text = coin.rank.toString(),
-                            fontSize = 12.sp,
+                            text = "#${coin.rank}",
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = podiumColors.second
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.width(26.dp)
                         )
                     }
-                } else {
-                    // Discreet rank number for ranks 4 to 10
-                    Text(
-                        text = "#${coin.rank}",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.width(26.dp)
-                    )
-                }
 
-                // Coin Remote Logo Image via Coil
-                if (!coin.imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = coin.imageUrl,
-                        contentDescription = coin.name,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                    )
-                } else {
-                    // Fallback Circle if image URL is unavailable
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    if (!coin.imageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = coin.imageUrl,
+                            contentDescription = coin.name,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = coin.symbol.take(1),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = coin.name,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Expand details",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                         Text(
-                            text = coin.symbol.take(1),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            text = coin.symbol,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
                         )
                     }
                 }
 
-                // Name & Symbol
-                Column {
-                    Text(
-                        text = coin.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = coin.symbol,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 13.sp
+                // Right Side: Spot Price, 24h Change & Switch
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        AnimatedContent(
+                            targetState = coin.currentPriceUsd,
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = "priceAnimation"
+                        ) { price ->
+                            Text(
+                                text = formatCurrencyUsd(price),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        val isPositive = coin.priceChangePercentage24h >= 0
+                        val changeColor = if (isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        val changeSign = if (isPositive) "+" else ""
+
+                        Text(
+                            text = "$changeSign${String.format(Locale.US, "%.2f", coin.priceChangePercentage24h)}%",
+                            color = changeColor,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp
+                        )
+                    }
+
+                    Switch(
+                        checked = isNotified,
+                        onCheckedChange = { onToggleNotification() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     )
                 }
             }
 
-            // Right Side: Spot Price (with animation), 24h Change, and Polished Notification Switch Toggle
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.End) {
-                    // AnimatedContent creates a smooth fade transition effect when price updates
-                    AnimatedContent(
-                        targetState = coin.currentPriceUsd,
-                        transitionSpec = {
-                            fadeIn() togetherWith fadeOut()
-                        },
-                        label = "priceAnimation"
-                    ) { price ->
-                        Text(
-                            text = formatCurrencyUsd(price),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+            // Expanded Market Metrics & Summary Section
+            if (isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                ) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Cryptocurrency Brief Summary Description
+                    if (!coin.description.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = coin.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
 
-                    val isPositive = coin.priceChangePercentage24h >= 0
-                    // Use semantic tokens: primary (terminal green) for positive, error for negative
-                    val changeColor = if (isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                    val changeSign = if (isPositive) "+" else ""
-
-                    Text(
-                        text = "$changeSign${String.format(Locale.US, "%.2f", coin.priceChangePercentage24h)}%",
-                        color = changeColor,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 13.sp
-                    )
+                    // Market Stats Grid (24h High, 24h Low, Market Cap, 24h Volume)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        MarketStatItem(
+                            label = "24h High",
+                            value = coin.high24hUsd?.let { formatCurrencyUsd(it) } ?: "N/A"
+                        )
+                        MarketStatItem(
+                            label = "24h Low",
+                            value = coin.low24hUsd?.let { formatCurrencyUsd(it) } ?: "N/A"
+                        )
+                        MarketStatItem(
+                            label = "Market Cap",
+                            value = coin.marketCapUsd?.let { formatCompactUsd(it) } ?: "N/A"
+                        )
+                        MarketStatItem(
+                            label = "24h Volume",
+                            value = coin.totalVolumeUsd?.let { formatCompactUsd(it) } ?: "N/A"
+                        )
+                    }
                 }
 
-                // Modern Material 3 Switch Toggle for Notifications
-                Switch(
-                    checked = isNotified,
-                    onCheckedChange = { onToggleNotification() },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                )
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Integrated Bottom Bar for Web Details
+                Surface(
+                    onClick = {
+                        val webUrl = "https://www.coingecko.com/en/coins/${coin.id}"
+                        uriHandler.openUri(webUrl)
+                    },
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "View details on web ↗",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+/**
+ * Helper composable displaying a single market statistic metric (e.g. 24h High, Market Cap).
+ */
+@Composable
+private fun MarketStatItem(
+    label: String,
+    value: String
+) {
+    Column(horizontalAlignment = Alignment.Start) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+/**
+ * Formats large double currency values into compact string format (e.g. $1.25B, $850.5M).
+ */
+private fun formatCompactUsd(value: Double): String {
+    return when {
+        value >= 1_000_000_000_000 -> String.format(Locale.US, "$%.2fT", value / 1_000_000_000_000)
+        value >= 1_000_000_000 -> String.format(Locale.US, "$%.2fB", value / 1_000_000_000)
+        value >= 1_000_000 -> String.format(Locale.US, "$%.2fM", value / 1_000_000)
+        else -> String.format(Locale.US, "$%.0f", value)
     }
 }
 
