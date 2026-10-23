@@ -3,33 +3,33 @@ package com.example.crypto_tracker.notification
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.crypto_tracker.data.cache.CoinCachePreferences
+import com.example.crypto_tracker.data.repository.CachingCryptoRepository
 import com.example.crypto_tracker.data.repository.CryptoRepository
+import com.example.crypto_tracker.data.repository.ICryptoRepository
 
 /**
  * Background worker running periodically to fetch top crypto prices and update the persistent notification.
+ * A failed fetch is reported as [Result.retry] so WorkManager backs off and tries again.
  */
 class CryptoPriceWorker(
     appContext: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    private val repository = CryptoRepository()
-    private val notificationManager = CryptoNotificationManager(appContext)
-    private val prefs = NotificationPreferences(appContext)
+    private val repository: ICryptoRepository =
+        CachingCryptoRepository(CryptoRepository(), CoinCachePreferences(appContext))
+    private val notifier: PriceNotifier = CryptoNotificationManager(appContext)
+    private val pinnedStore: PinnedCoinsStore = NotificationPreferences(appContext)
 
-    override suspend fun doWork(): Result {
-        return try {
-            val result = repository.fetchTop10Cryptos()
-            result.onSuccess { coins ->
+    override suspend fun doWork(): Result =
+        repository.fetchTopCryptos().fold(
+            onSuccess = { coins ->
                 if (coins.isNotEmpty()) {
-                    val top1Coin = coins.firstOrNull { it.rank == 1 } ?: coins.first()
-                    val selectedIds = prefs.ensureDefaultSelectionFromTop1(top1Coin.id)
-                    notificationManager.showPortfolioNotification(coins, selectedIds)
+                    notifier.showPortfolioNotification(coins, pinnedStore.ensureDefaultSelection(coins))
                 }
-            }
-            Result.success()
-        } catch (_: Exception) {
-            Result.retry()
-        }
-    }
+                Result.success()
+            },
+            onFailure = { Result.retry() }
+        )
 }

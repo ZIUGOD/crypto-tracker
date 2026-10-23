@@ -1,12 +1,25 @@
 package com.example.crypto_tracker.data.preferences
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.example.crypto_tracker.config.AppConfig
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
-/**
- * Manages user authentication session state locally.
- */
-class SessionManager(context: Context) {
+/** Contract for the locally stored user session (lets ViewModels be tested without Android). */
+interface SessionStore {
+    fun isLoggedIn(): Boolean
+    fun getUserName(): String?
+    fun getUserEmail(): String?
+    fun saveUserSession(email: String, name: String)
+    fun savePrivacyConsent()
+    fun clearSession()
+}
+
+/** SharedPreferences-backed [SessionStore]: manages the authentication session locally. */
+class SessionManager(context: Context) : SessionStore {
     private val prefs = context.getSharedPreferences(AppConfig.Storage.PREF_NAME_SESSION, Context.MODE_PRIVATE)
 
     companion object {
@@ -21,14 +34,14 @@ class SessionManager(context: Context) {
     /**
      * Checks if a user session is currently active.
      */
-    fun isLoggedIn(): Boolean {
+    override fun isLoggedIn(): Boolean {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
     /**
      * Saves authenticated user session data.
      */
-    fun saveUserSession(email: String, name: String) {
+    override fun saveUserSession(email: String, name: String) {
         prefs.edit()
             .putBoolean(KEY_IS_LOGGED_IN, true)
             .putString(KEY_USER_EMAIL, email)
@@ -36,7 +49,19 @@ class SessionManager(context: Context) {
             .apply()
     }
 
-    fun savePrivacyConsent() {
+    /** Label for the account badge: the user's name when signed in with current consent, otherwise null (guest). */
+    fun accountLabel(): String? =
+        if (isLoggedIn() && hasCurrentPrivacyConsent()) getUserName() ?: "Logged In" else null
+
+    /** Emits [accountLabel] now and whenever the stored session changes, from any [SessionManager] instance. */
+    fun observeAccountLabel(): Flow<String?> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(accountLabel()) }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        trySend(accountLabel())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    override fun savePrivacyConsent() {
         prefs.edit()
             .putInt(KEY_PRIVACY_CONSENT_VERSION, CURRENT_PRIVACY_CONSENT_VERSION)
             .putLong(KEY_PRIVACY_CONSENT_AT, System.currentTimeMillis())
@@ -56,17 +81,17 @@ class SessionManager(context: Context) {
     /**
      * Clears user session (Sign out).
      */
-    fun clearSession() {
+    override fun clearSession() {
         prefs.edit().clear().apply()
     }
 
     /**
      * Returns the logged-in user's email.
      */
-    fun getUserEmail(): String? = prefs.getString(KEY_USER_EMAIL, null)
+    override fun getUserEmail(): String? = prefs.getString(KEY_USER_EMAIL, null)
 
     /**
      * Returns the logged-in user's display name.
      */
-    fun getUserName(): String? = prefs.getString(KEY_USER_NAME, null)
+    override fun getUserName(): String? = prefs.getString(KEY_USER_NAME, null)
 }

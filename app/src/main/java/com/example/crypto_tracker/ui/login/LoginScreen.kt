@@ -1,7 +1,6 @@
-package com.example.crypto_tracker.ui.screens
+package com.example.crypto_tracker.ui.login
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,17 +17,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import com.example.crypto_tracker.ui.components.GlassCard
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,14 +39,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import com.example.crypto_tracker.R
+import com.example.crypto_tracker.auth.GoogleSignInClient
+import com.example.crypto_tracker.auth.SignInResult
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.SessionManager
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
 /** Displays Google sign-in with the required privacy consent and international data protection compliance (GDPR/LGPD). */
@@ -93,11 +89,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
         Spacer(Modifier.height(20.dp))
 
         // Data Protection Compliance Card (GDPR & LGPD)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        GlassCard(
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -118,10 +111,10 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    TextButton(onClick = { uriHandler.openUri("https://example.com/privacy") }) {
+                    TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL) }) {
                         Text("Privacy Policy")
                     }
-                    TextButton(onClick = { uriHandler.openUri("https://example.com/terms") }) {
+                    TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL) }) {
                         Text("Terms of Use")
                     }
                 }
@@ -145,42 +138,18 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             onClick = {
                 scope.launch {
                     isLoading = true
-                    try {
-                        val googleIdOption = GetGoogleIdOption.Builder()
-                            .setFilterByAuthorizedAccounts(false)
-                            .setServerClientId(webClientId)
-                            .build()
-                        val request = GetCredentialRequest.Builder()
-                            .addCredentialOption(googleIdOption)
-                            .build()
-                        val result: GetCredentialResponse = CredentialManager.create(context).getCredential(
-                            context = context,
-                            request = request
-                        )
-                        val credential = result.credential
-                        if (credential is androidx.credentials.CustomCredential &&
-                            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                        ) {
-                            val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                            val name = googleCredential.displayName ?: "Crypto User"
+                    when (val result = GoogleSignInClient(context, webClientId).signIn()) {
+                        is SignInResult.Success -> {
                             sessionManager.savePrivacyConsent()
-                            sessionManager.saveUserSession(googleCredential.id, name)
-                            Toast.makeText(context, "Welcome, $name!", Toast.LENGTH_SHORT).show()
+                            sessionManager.saveUserSession(result.email, result.displayName)
+                            Toast.makeText(context, "Welcome, ${result.displayName}!", Toast.LENGTH_SHORT).show()
                             onLoginSuccess()
-                        } else {
-                            Toast.makeText(context, "Sign in failed. Please try again.", Toast.LENGTH_SHORT).show()
                         }
-                    } catch (_: GetCredentialCancellationException) {
-                        // The account picker was dismissed; do not alter the current session.
-                    } catch (e: Exception) {
-                        Toast.makeText(
-                            context,
-                            "Google Sign-In error: ${e.localizedMessage ?: "Service unavailable"}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } finally {
-                        isLoading = false
+                        is SignInResult.Failed ->
+                            Toast.makeText(context, result.reason, Toast.LENGTH_LONG).show()
+                        SignInResult.Cancelled -> Unit // Account picker dismissed; keep the current session.
                     }
+                    isLoading = false
                 }
             },
             modifier = Modifier.fillMaxWidth(),

@@ -15,7 +15,13 @@ enum class ThemeMode {
 /**
  * Manages user theme preferences using SharedPreferences.
  */
-class ThemePreferences(context: Context) {
+/** Contract for persisting the user's theme choice. */
+interface ThemeStore {
+    fun getThemeMode(): ThemeMode
+    fun setThemeMode(mode: ThemeMode)
+}
+
+class ThemePreferences(context: Context) : ThemeStore {
     private val prefs = context.getSharedPreferences(AppConfig.Storage.PREF_NAME_THEME, Context.MODE_PRIVATE)
 
     companion object {
@@ -25,7 +31,7 @@ class ThemePreferences(context: Context) {
     /**
      * Retrieves the saved theme mode. Defaults to [ThemeMode.SYSTEM].
      */
-    fun getThemeMode(): ThemeMode {
+    override fun getThemeMode(): ThemeMode {
         val modeName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
         return runCatching { ThemeMode.valueOf(modeName) }.getOrDefault(ThemeMode.SYSTEM)
     }
@@ -33,7 +39,7 @@ class ThemePreferences(context: Context) {
     /**
      * Saves the selected theme mode.
      */
-    fun setThemeMode(mode: ThemeMode) {
+    override fun setThemeMode(mode: ThemeMode) {
         prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
     }
 }

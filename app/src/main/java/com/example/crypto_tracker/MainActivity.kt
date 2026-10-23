@@ -5,44 +5,26 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -52,9 +34,10 @@ import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.notification.CryptoPriceWorker
 import com.example.crypto_tracker.ui.components.BannerAdView
-import com.example.crypto_tracker.ui.screens.HomeScreen
-import com.example.crypto_tracker.ui.screens.NewsScreen
-import com.example.crypto_tracker.ui.screens.SettingsScreen
+import com.example.crypto_tracker.ui.components.GlassBackground
+import com.example.crypto_tracker.ui.home.HomeScreen
+import com.example.crypto_tracker.ui.news.NewsScreen
+import com.example.crypto_tracker.ui.settings.SettingsScreen
 import com.example.crypto_tracker.ui.theme.CryptotrackerTheme
 import com.google.android.gms.ads.MobileAds
 import java.util.concurrent.TimeUnit
@@ -133,79 +116,37 @@ fun CryptotrackerApp(
     // Retains selected destination state across configuration changes
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            // Single pinned banner shared by all screens: stays fixed while content scrolls
-            // and is not reloaded on every tab switch.
-            BannerAdView(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .statusBarsPadding()
-            )
-        },
-        bottomBar = {
-            Surface(
-                tonalElevation = 3.dp,
-                shadowElevation = 8.dp
-            ) {
-                NavigationBar(
-                    modifier = Modifier.height(AppConfig.Navigation.NAV_BAR_HEIGHT_DP.dp),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp, vertical = 2.dp),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AppDestinations.entries.forEach { destination ->
-                            val isSelected = destination == currentDestination
-                            val contentColor = if (isSelected) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
+    // Back from News/Settings returns to Home; from Home it falls through and closes the app.
+    BackHandler(enabled = currentDestination != AppDestinations.HOME) {
+        currentDestination = AppDestinations.HOME
+    }
 
-                            Column(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .clickable { currentDestination = destination }
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(destination.icon),
-                                    contentDescription = destination.label,
-                                    tint = contentColor,
-                                    modifier = Modifier.size(AppConfig.Navigation.NAV_BAR_ICON_SIZE_DP.dp)
-                                )
-                                if (AppConfig.Navigation.SHOW_NAVIGATION_LABELS) {
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = destination.label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = contentColor
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+    GlassBackground(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            topBar = {
+                // Single pinned banner shared by all screens: stays fixed while content scrolls
+                // and is not reloaded on every tab switch.
+                BannerAdView(
+                    modifier = Modifier.statusBarsPadding()
+                )
+            },
+            bottomBar = {
+                AppNavigationBar(
+                    current = currentDestination,
+                    onSelect = { currentDestination = it }
+                )
             }
-        }
-    ) { innerPadding ->
-        when (currentDestination) {
-            AppDestinations.HOME -> HomeScreen(modifier = Modifier.padding(innerPadding))
-            AppDestinations.NEWS -> NewsScreen(modifier = Modifier.padding(innerPadding))
-            AppDestinations.SETTINGS -> SettingsScreen(
-                modifier = Modifier.padding(innerPadding),
-                onThemeChanged = onThemeChanged
-            )
+        ) { innerPadding ->
+            when (currentDestination) {
+                AppDestinations.HOME -> HomeScreen(modifier = Modifier.padding(innerPadding))
+                AppDestinations.NEWS -> NewsScreen(modifier = Modifier.padding(innerPadding))
+                AppDestinations.SETTINGS -> SettingsScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    onThemeChanged = onThemeChanged
+                )
+            }
         }
     }
 }
@@ -223,25 +164,4 @@ enum class AppDestinations(
     HOME("Home", R.drawable.ic_home),
     NEWS("News", R.drawable.ic_news),
     SETTINGS("Settings", R.drawable.baseline_settings_24),
-}
-
-/**
- * Sample greeting component retained for UI testing and preview exercises.
- */
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Surface(color = Color.LightGray) {
-        Text(
-            text = "Hello! My name is $name and this is my first Android app!",
-            modifier = modifier.padding(24.dp)
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CryptotrackerTheme {
-        Greeting("ThirdBvsta")
-    }
 }

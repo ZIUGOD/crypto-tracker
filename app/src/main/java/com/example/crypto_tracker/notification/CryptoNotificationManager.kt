@@ -8,72 +8,71 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.example.crypto_tracker.MainActivity
 import com.example.crypto_tracker.R
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
-import java.util.Locale
 
 /**
- * Manages notification channels and individual independent notifications for each selected cryptocurrency.
+ * Posts one notification per pinned coin and cancels the ones that are no longer pinned.
+ * Unchanged notifications are not re-posted (see [PostedNotificationCache]).
  */
-class CryptoNotificationManager(private val context: Context) {
+class CryptoNotificationManager(private val context: Context) : PriceNotifier {
 
-    companion object {
-        const val CHANNEL_ID = "crypto_price_channel"
-        private const val NOTIFICATION_BASE_ID = 2000
-    }
+    private val systemManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val postedCache = PostedNotificationCache()
 
     init {
         createNotificationChannel()
     }
 
-    private fun createNotificationChannel() {
-        val name = "Crypto Live Prices"
-        val descriptionText = "Persistent notifications keeping you updated with live crypto prices"
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-        }
-        val notificationManager: NotificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-    }
-
-    /**
-     * Posts an individual independent status bar notification for each selected cryptocurrency,
-     * and cancels notifications for any coins that are unselected.
-     */
-    fun showPortfolioNotification(coins: List<CryptoCoin>, selectedCoinIds: Set<String>) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+    override fun showPortfolioNotification(coins: List<CryptoCoin>, selectedCoinIds: Set<String>) {
         coins.forEach { coin ->
-            // Generate a unique and stable notification ID for each coin
-            val notificationId = NOTIFICATION_BASE_ID + Math.abs(coin.id.hashCode() % 1000)
-
-            if (selectedCoinIds.contains(coin.id)) {
-                val intent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                val pendingIntent: PendingIntent = PendingIntent.getActivity(
-                    context, coin.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE
-                )
-
-                val sign = if (coin.priceChangePercentage24h >= 0) "+" else ""
-                val priceText = "$${String.format(Locale.US, "%,.2f", coin.currentPriceUsd)} ($sign${String.format(Locale.US, "%,.1f", coin.priceChangePercentage24h)}%)"
-
-                val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_notification)
-                    .setContentTitle(coin.name)
-                    .setContentText(priceText)
-                    .setPriority(NotificationCompat.PRIORITY_LOW)
-                    .setOngoing(false)
-                    .setAutoCancel(false)
-                    .setContentIntent(pendingIntent)
-                    .build()
-
-                notificationManager.notify(notificationId, notification)
+            val id = notificationIdFor(coin)
+            if (coin.id in selectedCoinIds) {
+                post(id, coin)
             } else {
-                // Cancel notification if this coin is not currently selected
-                notificationManager.cancel(notificationId)
+                postedCache.forget(id)
+                systemManager.cancel(id)
             }
         }
+    }
+
+    private fun post(id: Int, coin: CryptoCoin) {
+        val text = notificationPriceText(coin)
+        if (!postedCache.shouldPost(id, text)) return
+
+        val notification = NotificationCompat.Builder(context, AppConfig.Notifications.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(coin.name)
+            .setContentText(text)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(false)
+            .setAutoCancel(false)
+            .setContentIntent(openAppIntent(coin))
+            .build()
+        systemManager.notify(id, notification)
+    }
+
+    private fun openAppIntent(coin: CryptoCoin): PendingIntent {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        return PendingIntent.getActivity(context, coin.id.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    /** Stable per-coin ID inside [AppConfig.Notifications.NOTIFICATION_ID_RANGE]. */
+    private fun notificationIdFor(coin: CryptoCoin): Int =
+        AppConfig.Notifications.NOTIFICATION_BASE_ID +
+            Math.floorMod(coin.id.hashCode(), AppConfig.Notifications.NOTIFICATION_ID_RANGE)
+
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            AppConfig.Notifications.CHANNEL_ID,
+            "Crypto Live Prices",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Persistent notifications keeping you updated with live crypto prices"
+        }
+        systemManager.createNotificationChannel(channel)
     }
 }
