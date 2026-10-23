@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -100,7 +101,7 @@ fun HomeContent(
 
         when (uiState) {
             is HomeUiState.Loading -> LoadingState()
-            is HomeUiState.Error -> ErrorState(message = uiState.message, onRetry = onRetry)
+            is HomeUiState.Error -> ErrorState(reason = uiState.reason, onRetry = onRetry)
             is HomeUiState.Success -> CoinList(
                 state = uiState,
                 pinnedCoinIds = pinnedCoinIds,
@@ -162,7 +163,13 @@ private fun ColumnScope.LoadingState() {
 }
 
 @Composable
-private fun ColumnScope.ErrorState(message: String, onRetry: () -> Unit) {
+private fun ColumnScope.ErrorState(reason: HomeError, onRetry: () -> Unit) {
+    val (title, hint) = when (reason) {
+        HomeError.NO_CONNECTION ->
+            "No internet connection" to "Connect to the internet to load the rankings and keep using the app."
+        HomeError.UNAVAILABLE ->
+            "Market data is unavailable" to "Something went wrong on our side. Please try again in a moment."
+    }
     CenteredColumn {
         Icon(
             imageVector = Icons.Default.Warning,
@@ -172,9 +179,17 @@ private fun ColumnScope.ErrorState(message: String, onRetry: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = message,
+            text = title,
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = hint,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(12.dp))
         Button(onClick = onRetry) {

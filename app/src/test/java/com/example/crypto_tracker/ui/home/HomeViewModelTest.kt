@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import java.net.UnknownHostException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -96,11 +97,26 @@ class HomeViewModelTest {
 
     @Test
     fun emitsErrorWhenFirstLoadFails() = runTest(dispatcher) {
-        val vm = viewModel(repo = FakeRepository(Result.failure(Exception("offline"))))
+        val vm = viewModel(repo = FakeRepository(Result.failure(Exception("boom"))))
         vm.settle()
 
-        assertEquals(HomeUiState.Error("offline"), vm.uiState.value)
+        assertEquals(HomeUiState.Error(HomeError.UNAVAILABLE), vm.uiState.value)
         vm.viewModelScope.cancel()
+    }
+
+    @Test
+    fun reportsNoConnectionWhenTheDeviceIsOffline() = runTest(dispatcher) {
+        val vm = viewModel(repo = FakeRepository(Result.failure(UnknownHostException("api.coincap.io"))))
+        vm.settle()
+
+        assertEquals(HomeUiState.Error(HomeError.NO_CONNECTION), vm.uiState.value)
+        vm.viewModelScope.cancel()
+    }
+
+    @Test
+    fun serverFailuresAreNotReportedAsNoConnection() {
+        assertEquals(HomeError.UNAVAILABLE, java.io.IOException("HTTP 429 from https://x").toHomeError())
+        assertEquals(HomeError.NO_CONNECTION, java.net.SocketTimeoutException().toHomeError())
     }
 
     @Test

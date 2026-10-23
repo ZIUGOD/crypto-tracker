@@ -36,6 +36,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,7 +53,22 @@ sealed interface HomeUiState {
         /** True while showing the locally saved list from an earlier session, not a fresh fetch. */
         val isStale: Boolean = false
     ) : HomeUiState
-    data class Error(val message: String) : HomeUiState
+    data class Error(val reason: HomeError) : HomeUiState
+}
+
+/** Why the first load failed. The UI maps each reason to a user-facing instruction; raw errors never reach the user. */
+enum class HomeError {
+    /** The device is offline or the network is unreachable: the user must connect. */
+    NO_CONNECTION,
+
+    /** Any other failure (provider down, rate limit, bad payload): trying again later is the only action. */
+    UNAVAILABLE
+}
+
+internal fun Throwable.toHomeError(): HomeError = when (this) {
+    is UnknownHostException, is ConnectException, is SocketTimeoutException, is NoRouteToHostException ->
+        HomeError.NO_CONNECTION
+    else -> HomeError.UNAVAILABLE
 }
 
 /** One-off messages for the UI (shown once, never re-delivered on recomposition). */
@@ -153,7 +172,7 @@ class HomeViewModel(
     private fun onMarketDataFailed(error: Throwable) {
         // Keep showing the last good data when a refresh fails.
         if (_uiState.value !is HomeUiState.Success) {
-            _uiState.update { HomeUiState.Error(error.localizedMessage ?: "Failed to load market rankings.") }
+            _uiState.update { HomeUiState.Error(error.toHomeError()) }
         }
     }
 

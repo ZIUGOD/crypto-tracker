@@ -1,6 +1,7 @@
 package com.example.crypto_tracker.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -48,14 +49,20 @@ class GoogleSignInClient(
         } catch (_: GetCredentialCancellationException) {
             SignInResult.Cancelled
         } catch (e: Exception) {
-            SignInResult.Failed("Google Sign-In error: ${e.localizedMessage ?: "Service unavailable"}")
+            Log.w(TAG, "Google sign-in failed", e)
+            SignInResult.Failed(SIGN_IN_FAILED_MESSAGE)
         }
+    }
+
+    private companion object {
+        const val TAG = "GoogleSignIn"
+        const val SIGN_IN_FAILED_MESSAGE = "Couldn't sign you in. Check your connection and try again."
     }
 
     private fun toSignInResult(credential: androidx.credentials.Credential): SignInResult {
         val isGoogleIdToken = credential is CustomCredential &&
             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-        if (!isGoogleIdToken) return SignInResult.Failed("Sign in failed. Please try again.")
+        if (!isGoogleIdToken) return SignInResult.Failed(SIGN_IN_FAILED_MESSAGE)
 
         val google = GoogleIdTokenCredential.createFrom((credential as CustomCredential).data)
         return SignInResult.Success(
