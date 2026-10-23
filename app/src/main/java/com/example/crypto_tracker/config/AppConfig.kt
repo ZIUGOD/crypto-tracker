@@ -16,6 +16,12 @@ object AppConfig {
         /** Real backdrop blur behind glass surfaces (Android 12+). When false, glass uses the opaque fallback. */
         const val GLASS_BACKDROP_BLUR_ENABLED = true
 
+        /**
+         * Resolution the glass blur is computed at, as a fraction of the screen (0.5 = a quarter of the pixels).
+         * Lower = smoother scrolling, higher = sharper blur. 1.0 is full resolution.
+         */
+        const val GLASS_BLUR_RESOLUTION_SCALE = 0.5f
+
         /** Silk ribbons, dot grid and grain behind the app. When false, only the plain gradient is drawn. */
         const val BACKGROUND_TEXTURE_ENABLED = true
 

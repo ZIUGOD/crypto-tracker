@@ -46,6 +46,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -265,13 +266,15 @@ private fun ChangePill(percent: Double, locale: Locale) {
     val isPositive = percent >= 0
     val sign = if (isPositive) "+" else ""
     val arrow = if (isPositive) "▲" else "▼"
+    // Formatting allocates; redo it only when the value or language changes, not on every recomposition.
+    val label = remember(percent, locale) { "$arrow $sign${String.format(locale, "%.2f", percent)}%" }
 
     Surface(
         shape = CircleShape,
         color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
     ) {
         Text(
-            text = "$arrow $sign${String.format(locale, "%.2f", percent)}%",
+            text = label,
             style = FinancialText.Change,
             color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)

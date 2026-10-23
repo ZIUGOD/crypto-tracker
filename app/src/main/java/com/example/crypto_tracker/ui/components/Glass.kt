@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 import com.example.crypto_tracker.config.AppConfig
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -129,7 +130,9 @@ fun Modifier.glass(
     return this
         .clip(shape)
         .then(
-            if (hazeState != null && AppConfig.Design.GLASS_BACKDROP_BLUR_ENABLED) Modifier.hazeEffect(state = hazeState, style = style)
+            if (hazeState != null && AppConfig.Design.GLASS_BACKDROP_BLUR_ENABLED) Modifier.hazeEffect(state = hazeState, style = style) {
+                inputScale = HazeInputScale.Fixed(AppConfig.Design.GLASS_BLUR_RESOLUTION_SCALE)
+            }
             else Modifier.background(fallback)
         )
         .background(sheen)

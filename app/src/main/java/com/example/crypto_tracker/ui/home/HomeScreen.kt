@@ -232,7 +232,7 @@ private fun CoinList(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(GlassDefaults.ListSpacing)
     ) {
-        items(items = state.coins, key = { it.id }) { coin ->
+        items(items = state.coins, key = { it.id }, contentType = { "coin" }) { coin ->
             CryptoRankCard(
                 coin = coin,
                 isNotified = coin.id in pinnedCoinIds,
