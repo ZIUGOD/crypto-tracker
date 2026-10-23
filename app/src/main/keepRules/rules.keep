@@ -10,3 +10,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# WorkManager's Room database is created by reflection (WorkDatabase_Impl.<init>); without this R8 strips the constructor
+# and the app crashes at startup in release builds.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }

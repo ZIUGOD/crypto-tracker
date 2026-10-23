@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "crypto-tracker"
 include(":app")
+include(":baselineprofile")
