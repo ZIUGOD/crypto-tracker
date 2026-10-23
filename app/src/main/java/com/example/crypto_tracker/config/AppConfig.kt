@@ -50,7 +50,7 @@ object AppConfig {
          * Empty space in dp to the left and right of the bottom navigation bar.
          * 0 makes the bar span the full screen width.
          */
-        const val NAV_BAR_OUTER_PADDING_HORIZONTAL_DP = 10
+        const val NAV_BAR_OUTER_PADDING_HORIZONTAL_DP = 5
 
         /**
          * Empty space in dp above and below the bottom navigation bar (added on top of the system

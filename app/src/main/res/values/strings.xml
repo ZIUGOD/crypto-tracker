@@ -111,9 +111,4 @@
     <string name="about_feature_privacy_title">Privacy &amp; Local Data</string>
     <string name="about_feature_privacy_description">Your preferences are stored locally with optional Google Account sync.</string>
 
-    <!-- Login -->
-    <string name="login_logo_description">Crypto Tracker logo</string>
-    <string name="login_subtitle">Sign in to access your live crypto portfolio</string>
-    <string name="login_privacy_title">Privacy and data protection (GDPR / LGPD)</string>
-    <string name="login_privacy_body">Your name and email are used only for authentication and your local session. We do not sell your data or collect more than is needed to operate the app.</string>
 </resources>

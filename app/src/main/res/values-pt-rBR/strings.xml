@@ -103,9 +103,4 @@
     <string name="about_feature_privacy_title">Privacidade e Dados Locais</string>
     <string name="about_feature_privacy_description">Suas preferências são armazenadas localmente, com sincronização opcional com a Conta Google.</string>
 
-    <!-- Login -->
-    <string name="login_logo_description">Logotipo do Crypto Tracker</string>
-    <string name="login_subtitle">Entre para acessar sua carteira de criptomoedas ao vivo</string>
-    <string name="login_privacy_title">Privacidade e proteção de dados (GDPR / LGPD)</string>
-    <string name="login_privacy_body">Seu nome e e-mail são usados apenas para autenticação e para a sua sessão local. Não vendemos seus dados nem coletamos mais do que o necessário para o funcionamento do app.</string>
 </resources>

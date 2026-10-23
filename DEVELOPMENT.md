@@ -20,7 +20,6 @@ ui/components/ Glass.kt (design system), ScreenHeader, UserAccountHeader, Banner
 ui/home/       HomeScreen (+ stateless HomeContent), HomeViewModel, CryptoRankCard, CoinFormatters
 ui/settings/   SettingsScreen, SettingsViewModel, ThemeSection, AccountSection, AboutSection
 ui/news/       NewsScreen (placeholder)
-ui/login/      LoginScreen (currently not wired into navigation)
 ```
 
 ## Where to change things
