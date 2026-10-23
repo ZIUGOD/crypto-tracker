@@ -18,6 +18,12 @@ object AppConfig {
 
         /** Silk ribbons, dot grid and grain behind the app. When false, only the plain gradient is drawn. */
         const val BACKGROUND_TEXTURE_ENABLED = true
+
+        /** How long a coin card takes to open its details. Higher = slower, softer. */
+        const val CARD_EXPAND_DURATION_MS = 450
+
+        /** How long a coin card takes to close its details; a bit shorter than opening feels natural. */
+        const val CARD_COLLAPSE_DURATION_MS = 350
     }
 
     // Bottom Navigation Bar Configuration

@@ -7,7 +7,17 @@ import com.example.crypto_tracker.format.CompactSuffixes
 import com.example.crypto_tracker.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.draw.rotate
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -26,7 +36,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.HorizontalDivider
@@ -54,6 +63,17 @@ import com.example.crypto_tracker.ui.components.glassInnerPanelColor
 import com.example.crypto_tracker.ui.theme.FinancialText
 import java.util.Locale
 
+// Smooth, unhurried curves; durations come from AppConfig.Design. The fade trails the size on the way
+// in (text appears once there is room) and leads it on the way out (text is gone before the card closes).
+private val ExpandSizeSpec = tween<IntSize>(AppConfig.Design.CARD_EXPAND_DURATION_MS, easing = FastOutSlowInEasing)
+private val ExpandFadeSpec = tween<Float>(
+    AppConfig.Design.CARD_EXPAND_DURATION_MS,
+    delayMillis = AppConfig.Design.CARD_EXPAND_DURATION_MS / 5,
+    easing = LinearOutSlowInEasing
+)
+private val CollapseSizeSpec = tween<IntSize>(AppConfig.Design.CARD_COLLAPSE_DURATION_MS, easing = FastOutSlowInEasing)
+private val CollapseFadeSpec = tween<Float>(AppConfig.Design.CARD_COLLAPSE_DURATION_MS * 2 / 3, easing = FastOutLinearInEasing)
+
 /**
  * One row of the market ranking. Collapsed: rank, logo, name, price, 24h change and the pin switch.
  * Expanded: summary, market stats and a link to the coin's web page.
@@ -71,16 +91,19 @@ fun CryptoRankCard(
     onToggleNotification: () -> Unit
 ) {
     GlassCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+        modifier = Modifier.fillMaxWidth(),
         strong = isExpanded,
         highlight = if (isExpanded) MaterialTheme.colorScheme.primary else null,
         onClick = onToggleExpand
     ) {
         CardSummary(coin, isNotified, isExpanded, onToggleNotification)
-        if (isExpanded) {
-            CardDetails(coin)
+        // The card grows/shrinks with the details (no separate animateContentSize, which would fight it).
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(animationSpec = ExpandSizeSpec) + fadeIn(animationSpec = ExpandFadeSpec),
+            exit = shrinkVertically(animationSpec = CollapseSizeSpec) + fadeOut(animationSpec = CollapseFadeSpec)
+        ) {
+            Column { CardDetails(coin) }
         }
     }
 }
@@ -190,11 +213,22 @@ private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean, modifier: Modifier 
                 modifier = Modifier.weight(1f, fill = false)
             )
             Spacer(modifier = Modifier.width(4.dp))
+            // One arrow that turns over, in step with the card, instead of swapping two icons.
+            val arrowRotation by animateFloatAsState(
+                targetValue = if (isExpanded) 180f else 0f,
+                animationSpec = tween(
+                    if (isExpanded) AppConfig.Design.CARD_EXPAND_DURATION_MS else AppConfig.Design.CARD_COLLAPSE_DURATION_MS,
+                    easing = FastOutSlowInEasing
+                ),
+                label = "arrowRotation"
+            )
             Icon(
-                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = stringResource(if (isExpanded) R.string.coin_collapse_details else R.string.coin_expand_details),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier
+                    .size(18.dp)
+                    .rotate(arrowRotation)
             )
         }
         Text(
