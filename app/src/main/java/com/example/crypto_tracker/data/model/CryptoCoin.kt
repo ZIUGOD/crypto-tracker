@@ -14,7 +14,6 @@ package com.example.crypto_tracker.data.model
  * @property low24hUsd Lowest price reached in the last 24 hours in USD.
  * @property marketCapUsd Total market capitalization in USD.
  * @property totalVolumeUsd Total 24h trading volume in USD.
- * @property description Brief summary description of the cryptocurrency.
  */
 data class CryptoCoin(
     val id: String,
@@ -27,6 +26,5 @@ data class CryptoCoin(
     val high24hUsd: Double? = null,
     val low24hUsd: Double? = null,
     val marketCapUsd: Double? = null,
-    val totalVolumeUsd: Double? = null,
-    val description: String? = null
+    val totalVolumeUsd: Double? = null
 )

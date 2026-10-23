@@ -16,31 +16,36 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.crypto_tracker.R
 import com.example.crypto_tracker.auth.GoogleSignInClient
+import com.example.crypto_tracker.data.preferences.AppLanguage
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.ui.components.GlassDefaults
 import com.example.crypto_tracker.ui.components.ScreenHeader
 
 /**
- * Settings screen: theme mode, Google account and app information.
+ * Settings screen: theme mode, language, Google account and app information.
  * Stateful entry point; each section is a stateless composable in its own file.
  *
  * @param onThemeChanged Lets the activity re-theme immediately when the mode changes.
+ * @param onLanguageChanged Lets the activity reload its resources when the language changes.
  * @param onSignedOut Invoked after the user signs out.
  */
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     onThemeChanged: (ThemeMode) -> Unit,
+    onLanguageChanged: (AppLanguage) -> Unit = {},
     onSignedOut: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val webClientId = stringResource(R.string.google_web_client_id)
     val googleSignIn = remember(context, webClientId) { GoogleSignInClient(context, webClientId) }
@@ -48,10 +53,15 @@ fun SettingsScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is SettingsEvent.Message -> Toast.makeText(
+                is SettingsEvent.Welcome -> Toast.makeText(
                     context,
-                    event.text,
-                    if (event.isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+                    resources.getString(R.string.toast_welcome, event.displayName),
+                    Toast.LENGTH_SHORT
+                ).show()
+                SettingsEvent.SignInFailed -> Toast.makeText(
+                    context,
+                    resources.getString(R.string.sign_in_failed),
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }
@@ -64,8 +74,8 @@ fun SettingsScreen(
             .padding(GlassDefaults.ScreenPadding)
     ) {
         ScreenHeader(
-            title = "Settings",
-            subtitle = "Customize your app preferences and account"
+            title = stringResource(R.string.settings_title),
+            subtitle = stringResource(R.string.settings_subtitle)
         )
 
         ThemeSection(
@@ -73,6 +83,18 @@ fun SettingsScreen(
             onSelected = { mode ->
                 viewModel.setThemeMode(mode)
                 onThemeChanged(mode)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        LanguageSection(
+            selected = uiState.language,
+            onSelected = { language ->
+                if (language != uiState.language) {
+                    viewModel.setLanguage(language)
+                    onLanguageChanged(language)
+                }
             }
         )
 

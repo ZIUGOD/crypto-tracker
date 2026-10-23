@@ -10,12 +10,17 @@ import com.example.crypto_tracker.MainActivity
 import com.example.crypto_tracker.R
 import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
+import com.example.crypto_tracker.data.preferences.AppLocale
 
 /**
  * Posts one notification per pinned coin and cancels the ones that are no longer pinned.
  * Unchanged notifications are not re-posted (see [PostedNotificationCache]).
  */
-class CryptoNotificationManager(private val context: Context) : PriceNotifier {
+class CryptoNotificationManager(baseContext: Context) : PriceNotifier {
+
+    // Localized with the language chosen in Settings, also when running from the background worker.
+    private val context: Context = AppLocale.wrap(baseContext)
+    private val locale = context.resources.configuration.locales[0]
 
     private val systemManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -38,7 +43,7 @@ class CryptoNotificationManager(private val context: Context) : PriceNotifier {
     }
 
     private fun post(id: Int, coin: CryptoCoin) {
-        val text = notificationPriceText(coin)
+        val text = notificationPriceText(coin, locale)
         if (!postedCache.shouldPost(id, text)) return
 
         val notification = NotificationCompat.Builder(context, AppConfig.Notifications.CHANNEL_ID)
@@ -68,10 +73,10 @@ class CryptoNotificationManager(private val context: Context) : PriceNotifier {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             AppConfig.Notifications.CHANNEL_ID,
-            "Crypto Live Prices",
+            context.getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = "Persistent notifications keeping you updated with live crypto prices"
+            description = context.getString(R.string.notification_channel_description)
         }
         systemManager.createNotificationChannel(channel)
     }

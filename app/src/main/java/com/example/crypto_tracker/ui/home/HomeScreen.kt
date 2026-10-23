@@ -1,5 +1,7 @@
 package com.example.crypto_tracker.ui.home
 
+import com.example.crypto_tracker.R
+import androidx.compose.ui.res.stringResource
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,6 +50,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pinnedCoinIds by viewModel.pinnedCoinIds.collectAsStateWithLifecycle()
     val expandedCoinId by viewModel.expandedCoinId.collectAsStateWithLifecycle()
@@ -56,7 +60,7 @@ fun HomeScreen(
             when (event) {
                 is HomeEvent.PinLimitReached -> Toast.makeText(
                     context,
-                    "Maximum of ${event.max} cryptocurrencies allowed for notifications",
+                    resources.getString(R.string.home_pin_limit_reached, event.max),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -91,8 +95,8 @@ fun HomeContent(
             .padding(GlassDefaults.ScreenPadding)
     ) {
         ScreenHeader(
-            title = "Top ${AppConfig.Market.TOP_COINS_COUNT} Cryptocurrencies",
-            subtitle = "Pin up to ${AppConfig.Notifications.MAX_NOTIFIED_COINS} live prices to your notification bar"
+            title = stringResource(R.string.home_title, AppConfig.Market.TOP_COINS_COUNT),
+            subtitle = stringResource(R.string.home_subtitle, AppConfig.Notifications.MAX_NOTIFIED_COINS)
         )
 
         StatusRow(uiState)
@@ -129,14 +133,19 @@ private fun StatusRow(uiState: HomeUiState) {
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                StatusText("Updating rankings...")
+                StatusText(stringResource(R.string.home_status_updating))
             } else {
-                StatusText("Auto-refreshes every 1 min")
+                StatusText(stringResource(R.string.home_status_auto_refresh))
             }
         }
 
         if (uiState is HomeUiState.Success) {
-            StatusText(if (uiState.isStale) "Saved data from ${uiState.lastUpdated}" else "Updated: ${uiState.lastUpdated}")
+            StatusText(
+                stringResource(
+                    if (uiState.isStale) R.string.home_status_saved else R.string.home_status_updated,
+                    uiState.lastUpdated
+                )
+            )
         }
     }
 }
@@ -156,7 +165,7 @@ private fun ColumnScope.LoadingState() {
         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Loading top ${AppConfig.Market.TOP_COINS_COUNT} market rankings...",
+            text = stringResource(R.string.home_loading, AppConfig.Market.TOP_COINS_COUNT),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -166,9 +175,9 @@ private fun ColumnScope.LoadingState() {
 private fun ColumnScope.ErrorState(reason: HomeError, onRetry: () -> Unit) {
     val (title, hint) = when (reason) {
         HomeError.NO_CONNECTION ->
-            "No internet connection" to "Connect to the internet to load the rankings and keep using the app."
+            stringResource(R.string.home_error_no_connection_title) to stringResource(R.string.home_error_no_connection_hint)
         HomeError.UNAVAILABLE ->
-            "Market data is unavailable" to "Something went wrong on our side. Please try again in a moment."
+            stringResource(R.string.home_error_unavailable_title) to stringResource(R.string.home_error_unavailable_hint)
     }
     CenteredColumn {
         Icon(
@@ -193,7 +202,7 @@ private fun ColumnScope.ErrorState(reason: HomeError, onRetry: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Button(onClick = onRetry) {
-            Text(text = "Try Again")
+            Text(text = stringResource(R.string.home_try_again))
         }
     }
 }

@@ -3,6 +3,8 @@ package com.example.crypto_tracker.ui.settings
 import androidx.lifecycle.viewModelScope
 import com.example.crypto_tracker.auth.GoogleSignIn
 import com.example.crypto_tracker.auth.SignInResult
+import com.example.crypto_tracker.data.preferences.AppLanguage
+import com.example.crypto_tracker.data.preferences.LanguageStore
 import com.example.crypto_tracker.data.preferences.SessionStore
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemeStore
@@ -43,7 +45,13 @@ class SettingsViewModelTest {
         override fun clearSession() { email = null; name = null }
     }
 
+    private class FakeLanguageStore(var stored: AppLanguage = AppLanguage.Default) : LanguageStore {
+        override fun getLanguage() = stored
+        override fun setLanguage(language: AppLanguage) { stored = language }
+    }
+
     private val themeStore = FakeThemeStore()
+    private val languageStore = FakeLanguageStore()
     private val sessionStore = FakeSessionStore()
 
     @Before
@@ -52,7 +60,7 @@ class SettingsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(session: FakeSessionStore = sessionStore) = SettingsViewModel(themeStore, session)
+    private fun viewModel(session: FakeSessionStore = sessionStore) = SettingsViewModel(themeStore, languageStore, session)
 
     @Test
     fun loadsSignedOutByDefault() {
@@ -63,7 +71,7 @@ class SettingsViewModelTest {
     fun loadsStoredAccount() {
         val vm = viewModel(FakeSessionStore(email = "a@b.com", name = null))
 
-        assertEquals(AccountState.SignedIn("Authenticated User", "a@b.com"), vm.uiState.value.account)
+        assertEquals(AccountState.SignedIn("a", "a@b.com"), vm.uiState.value.account)
     }
 
     @Test
@@ -74,6 +82,21 @@ class SettingsViewModelTest {
 
         assertEquals(ThemeMode.DARK, themeStore.mode)
         assertEquals(ThemeMode.DARK, vm.uiState.value.themeMode)
+    }
+
+    @Test
+    fun startsInEnglishByDefault() {
+        assertEquals(AppLanguage.ENGLISH, viewModel().uiState.value.language)
+    }
+
+    @Test
+    fun setLanguage_persistsAndUpdatesState() {
+        val vm = viewModel()
+
+        vm.setLanguage(AppLanguage.PORTUGUESE_BRAZIL)
+
+        assertEquals(AppLanguage.PORTUGUESE_BRAZIL, languageStore.stored)
+        assertEquals(AppLanguage.PORTUGUESE_BRAZIL, vm.uiState.value.language)
     }
 
     @Test
@@ -110,10 +133,10 @@ class SettingsViewModelTest {
         val job = launch(dispatcher) { message = vm.events.first() }
         dispatcher.scheduler.runCurrent()
 
-        vm.signIn(GoogleSignIn { SignInResult.Failed("boom") })
+        vm.signIn(GoogleSignIn { SignInResult.Failed })
         dispatcher.scheduler.runCurrent()
 
-        assertEquals(SettingsEvent.Message("boom", isLong = true), message)
+        assertEquals(SettingsEvent.SignInFailed, message)
         assertEquals(AccountState.SignedOut, vm.uiState.value.account)
         job.cancel()
         vm.viewModelScope.cancel()

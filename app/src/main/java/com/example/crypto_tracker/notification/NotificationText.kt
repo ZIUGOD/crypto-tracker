@@ -1,14 +1,15 @@
 package com.example.crypto_tracker.notification
 
 import com.example.crypto_tracker.data.model.CryptoCoin
+import com.example.crypto_tracker.format.formatCurrencyUsd
 import java.util.Locale
 
 /** Body of a coin's notification, e.g. "$60,000.50 (+2.5%)". Pure, so it can be unit-tested. */
-fun notificationPriceText(coin: CryptoCoin): String {
+fun notificationPriceText(coin: CryptoCoin, locale: Locale = Locale.US): String {
     val sign = if (coin.priceChangePercentage24h >= 0) "+" else ""
-    val price = String.format(Locale.US, "%,.2f", coin.currentPriceUsd)
-    val change = String.format(Locale.US, "%,.1f", coin.priceChangePercentage24h)
-    return "$$price ($sign$change%)"
+    val price = formatCurrencyUsd(coin.currentPriceUsd, locale)
+    val change = String.format(locale, "%,.1f", coin.priceChangePercentage24h)
+    return "$price ($sign$change%)"
 }
 
 /**

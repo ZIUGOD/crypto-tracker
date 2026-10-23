@@ -51,7 +51,7 @@ class SessionManager(context: Context) : SessionStore {
 
     /** Label for the account badge: the user's name when signed in with current consent, otherwise null (guest). */
     fun accountLabel(): String? =
-        if (isLoggedIn() && hasCurrentPrivacyConsent()) getUserName() ?: "Logged In" else null
+        if (isLoggedIn() && hasCurrentPrivacyConsent()) getUserName() ?: getUserEmail()?.substringBefore("@") else null
 
     /** Emits [accountLabel] now and whenever the stored session changes, from any [SessionManager] instance. */
     fun observeAccountLabel(): Flow<String?> = callbackFlow {

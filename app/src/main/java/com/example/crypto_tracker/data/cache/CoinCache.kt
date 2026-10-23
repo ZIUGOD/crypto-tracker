@@ -69,7 +69,6 @@ internal object CoinCacheJson {
                 put("low24h", coin.low24hUsd ?: JSONObject.NULL)
                 put("marketCap", coin.marketCapUsd ?: JSONObject.NULL)
                 put("volume", coin.totalVolumeUsd ?: JSONObject.NULL)
-                put("description", coin.description ?: JSONObject.NULL)
             })
         }
     }.toString()
@@ -89,8 +88,7 @@ internal object CoinCacheJson {
                 high24hUsd = obj.optDoubleOrNull("high24h"),
                 low24hUsd = obj.optDoubleOrNull("low24h"),
                 marketCapUsd = obj.optDoubleOrNull("marketCap"),
-                totalVolumeUsd = obj.optDoubleOrNull("volume"),
-                description = obj.optStringOrNull("description")
+                totalVolumeUsd = obj.optDoubleOrNull("volume")
             )
         }
     }

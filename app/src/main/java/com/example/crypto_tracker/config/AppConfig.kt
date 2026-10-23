@@ -121,6 +121,7 @@ object AppConfig {
     // SharedPreferences Keys
     object Storage {
         const val PREF_NAME_THEME = "theme_prefs"
+        const val PREF_NAME_LANGUAGE = "language_prefs"
         const val PREF_NAME_NOTIFICATIONS = "crypto_notif_prefs"
         const val PREF_NAME_SESSION = "session_prefs"
         const val PREF_NAME_COIN_CACHE = "coin_cache_prefs"

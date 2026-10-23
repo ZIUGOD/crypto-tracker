@@ -1,4 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default (English) strings. This file is also the fallback for any key a translation misses.
+  To add a language: add an entry to AppLanguage and a values-<qualifier>/strings.xml with the
+  same keys (see DEVELOPMENT.md). Keep the keys grouped by screen.
+-->
 <resources>
-    <string name="app_name">Crypto Tracker</string>
-    <string name="google_web_client_id">991627423046-1h46ij6ki5f4722t3bqbar13euvbq80m.apps.googleusercontent.com</string>
+    <!-- Brand / configuration (not translated) -->
+    <string name="app_name" translatable="false">Crypto Tracker</string>
+    <string name="google_web_client_id" translatable="false">991627423046-1h46ij6ki5f4722t3bqbar13euvbq80m.apps.googleusercontent.com</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_news">News</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Account badge -->
+    <string name="account_guest">Guest</string>
+
+    <!-- Home -->
+    <string name="home_title">Top %1$d Cryptocurrencies</string>
+    <string name="home_subtitle">Pin up to %1$d live prices to your notification bar</string>
+    <string name="home_status_updating">Updating rankings...</string>
+    <string name="home_status_auto_refresh">Auto-refreshes every 1 min</string>
+    <string name="home_status_updated">Updated: %1$s</string>
+    <string name="home_status_saved">Saved data from %1$s</string>
+    <string name="home_loading">Loading top %1$d market rankings...</string>
+    <string name="home_error_no_connection_title">No internet connection</string>
+    <string name="home_error_no_connection_hint">Connect to the internet to load the rankings and keep using the app.</string>
+    <string name="home_error_unavailable_title">Market data is unavailable</string>
+    <string name="home_error_unavailable_hint">Something went wrong on our side. Please try again in a moment.</string>
+    <string name="home_try_again">Try Again</string>
+    <string name="home_pin_limit_reached">Maximum of %1$d cryptocurrencies allowed for notifications</string>
+
+    <!-- Coin card -->
+    <string name="coin_expand_details">Expand details</string>
+    <string name="coin_collapse_details">Collapse details</string>
+    <string name="coin_stat_high_24h">24h High</string>
+    <string name="coin_stat_low_24h">24h Low</string>
+    <string name="coin_stat_market_cap">Market Cap</string>
+    <string name="coin_stat_volume_24h">24h Volume</string>
+    <string name="coin_stat_not_available">N/A</string>
+    <string name="coin_view_details_web">View details on web ↗</string>
+    <string name="compact_suffix_trillion">T</string>
+    <string name="compact_suffix_billion">B</string>
+    <string name="compact_suffix_million">M</string>
+
+    <!-- Coin summaries (keyed by provider coin id, see CoinDescriptions) -->
+    <string name="coin_desc_generic">%1$s (%2$s) is one of the top cryptocurrencies globally by market capitalization.</string>
+    <string name="coin_desc_bitcoin">Bitcoin (BTC) is the world\'s first decentralized peer-to-peer digital currency, designed to act as a store of value and digital gold.</string>
+    <string name="coin_desc_ethereum">Ethereum (ETH) is a decentralized smart contract platform that powers decentralized applications (dApps), DeFi, and Web3 ecosystems.</string>
+    <string name="coin_desc_tether">Tether (USDt) is a pioneer fiat-collateralized stablecoin pegged 1:1 to the US Dollar to provide stability in crypto markets.</string>
+    <string name="coin_desc_binancecoin">BNB powers the BNB Chain ecosystem, offering utility for trading fee discounts, DeFi protocols, and smart contracts.</string>
+    <string name="coin_desc_solana">Solana (SOL) is a high-performance blockchain built for speed and low-cost transactions, supporting NFTs, DeFi, and Web3.</string>
+    <string name="coin_desc_ripple">XRP is designed for fast, low-cost global cross-border payments and financial institution remittances.</string>
+    <string name="coin_desc_usd_coin">USDC is a fully backed US Dollar stablecoin providing dollar liquidity and instant settlement across Web3.</string>
+    <string name="coin_desc_cardano">Cardano (ADA) is a proof-of-stake blockchain platform designed for security, sustainability, and peer-reviewed smart contracts.</string>
+    <string name="coin_desc_dogecoin">Dogecoin (DOGE) is an open-source peer-to-peer cryptocurrency born from internet meme culture with a vibrant community.</string>
+    <string name="coin_desc_avalanche">Avalanche (AVAX) is an ultra-fast smart contract platform designed for scalable enterprise and DeFi applications.</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Crypto Live Prices</string>
+    <string name="notification_channel_description">Persistent notifications keeping you updated with live crypto prices</string>
+
+    <!-- News -->
+    <string name="news_title">Market News</string>
+    <string name="news_subtitle">Latest headlines and market updates</string>
+    <string name="news_under_construction_title">Under Construction</string>
+    <string name="news_under_construction_body">The news section is currently under active development. Real-time market news and crypto insights will be available here soon!</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Customize your app preferences and account</string>
+
+    <string name="theme_title">App Theme</string>
+    <string name="theme_description">Choose between Light, Dark, or System automatic mode</string>
+    <string name="theme_system_title">Automatic (System Default)</string>
+    <string name="theme_system_subtitle">Follows your device system theme</string>
+    <string name="theme_light_title">Light Theme</string>
+    <string name="theme_light_subtitle">Always use light appearance</string>
+    <string name="theme_dark_title">Dark Theme</string>
+    <string name="theme_dark_subtitle">Always use dark appearance</string>
+
+    <string name="language_title">Language</string>
+    <string name="language_description">Choose the language used across the app</string>
+
+    <string name="account_title">Account</string>
+    <string name="account_sign_out">Sign Out</string>
+    <string name="account_sign_in_google">Sign in with Google</string>
+    <string name="account_signing_in">Signing in...</string>
+    <string name="account_sync_description">Sign in to backup and sync your portfolio preferences securely across devices.</string>
+    <string name="account_google_logo">Google Logo</string>
+
+    <string name="privacy_title">Privacy and data protection</string>
+    <string name="privacy_body">We use your name and email only to authenticate your account and sync your preferences. We do not sell your personal data.</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_of_use">Terms of Use</string>
+    <string name="privacy_accept">I accept the Privacy Policy and Terms of Use.</string>
+
+    <string name="toast_welcome">Welcome, %1$s!</string>
+    <string name="sign_in_failed">Couldn\'t sign you in. Check your connection and try again.</string>
+
+    <!-- About -->
+    <string name="about_title">About Crypto Tracker</string>
+    <string name="about_purpose_title">App Purpose &amp; Features</string>
+    <string name="about_summary">Crypto Tracker provides fast, hassle-free market visibility for active crypto traders and enthusiasts.</string>
+    <string name="about_feature_rankings_title">Top %1$d Live Rankings</string>
+    <string name="about_feature_rankings_description">Real-time market cap rankings updated automatically every 1 minute.</string>
+    <string name="about_feature_notifications_title">Status Bar Notifications</string>
+    <string name="about_feature_notifications_description">Pin up to %1$d favorite coins to check live prices instantly without opening the app.</string>
+    <string name="about_feature_privacy_title">Privacy &amp; Local Data</string>
+    <string name="about_feature_privacy_description">Your preferences are stored locally with optional Google Account sync.</string>
+
+    <!-- Login -->
+    <string name="login_logo_description">Crypto Tracker logo</string>
+    <string name="login_subtitle">Sign in to access your live crypto portfolio</string>
+    <string name="login_privacy_title">Privacy and data protection (GDPR / LGPD)</string>
+    <string name="login_privacy_body">Your name and email are used only for authentication and your local session. We do not sell your data or collect more than is needed to operate the app.</string>
 </resources>

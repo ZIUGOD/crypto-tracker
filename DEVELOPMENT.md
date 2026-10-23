@@ -34,7 +34,16 @@ ui/login/      LoginScreen (currently not wired into navigation)
 | Provider JSON mapping | `data/repository/CoinParser.kt` (pure, unit-tested) |
 | Coin blurbs | `data/repository/CoinDescriptions.kt` |
 | Pin/notification rules | `HomeViewModel` (`togglePinned`) and `PinnedCoinsStore.ensureDefaultSelection` |
+| UI text (any language) | `res/values/strings.xml` (English, default + fallback) and `res/values-<lang>/strings.xml` |
+| Number / currency formats | `format/CoinFormatters.kt` (take a `Locale`) |
 | Ad unit IDs | `AppConfig.Ads` (+ `APPLICATION_ID` in `AndroidManifest.xml`) |
+
+## Localization (English + Portuguese-BR)
+- English is the default language **and** the fallback: `res/values/strings.xml`. The first launch is always English (it does not follow the device language); the choice is stored by `LanguagePreferences` and applied by `AppLocale.wrap(context)` in `MainActivity.attachBaseContext`. Changing it in Settings recreates the Activity.
+- No UI text in Kotlin: use `stringResource(R.string.x)` (or `context.getString` for toasts/notifications). ViewModels never hold text - they emit typed state/events (`HomeError`, `SettingsEvent`) and the screen maps them to strings.
+- Anything that runs without an Activity (notifications, the background worker) wraps its context with `AppLocale.wrap`, see `CryptoNotificationManager`.
+- Prices and percentages are formatted with the selected locale (`US$1.234,50` in pt-BR, always in US dollars). Never format with a hard-coded `Locale.US` in UI code; use `appLocale()` in composables.
+- **Add a language:** (1) add an entry to `AppLanguage` (tag + native name); (2) create `res/values-<qualifier>/strings.xml` (`es` -> `values-es`, `pt-BR` -> `values-pt-rBR`) with every key of the default file. `StringResourcesTest` fails when a key or a `%1$s` placeholder is missing. The language picker lists the new entry automatically.
 
 ## Architecture rules
 - One-way data flow: `Repository/Store -> ViewModel (StateFlow) -> Composable`. Screens render state and forward events; they never touch SharedPreferences, repositories or the notification manager.

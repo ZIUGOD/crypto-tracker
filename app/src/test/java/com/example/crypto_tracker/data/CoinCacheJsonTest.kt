@@ -13,7 +13,7 @@ class CoinCacheJsonTest {
             id = "bitcoin", rank = 1, symbol = "BTC", name = "Bitcoin",
             currentPriceUsd = 65000.5, priceChangePercentage24h = -1.25,
             imageUrl = "https://img/btc.png", high24hUsd = 66000.0, low24hUsd = 64000.0,
-            marketCapUsd = 1.2e12, totalVolumeUsd = 3.4e10, description = "Digital gold"
+            marketCapUsd = 1.2e12, totalVolumeUsd = 3.4e10
         )
         val minimal = CryptoCoin("eth", 2, "ETH", "Ethereum", 3000.0, 0.5)
 

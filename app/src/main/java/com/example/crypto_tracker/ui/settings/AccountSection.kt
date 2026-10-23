@@ -1,5 +1,6 @@
 package com.example.crypto_tracker.ui.settings
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,7 +39,7 @@ internal fun AccountSection(
     onSignIn: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    SectionTitle("Account")
+    SectionTitle(stringResource(R.string.account_title))
     Spacer(modifier = Modifier.height(8.dp))
 
     when (account) {
@@ -83,7 +84,7 @@ private fun SignedInCard(account: AccountState.SignedIn, onSignOut: () -> Unit) 
         shape = MaterialTheme.shapes.small,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(text = "Sign Out", style = MaterialTheme.typography.labelLarge)
+        Text(text = stringResource(R.string.account_sign_out), style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -106,14 +107,14 @@ private fun SignedOutCard(
             ) {
                 GoogleLogo(size = 24)
                 Text(
-                    text = "Sign in with Google",
+                    text = stringResource(R.string.account_sign_in_google),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Text(
-                text = "Sign in to backup and sync your portfolio preferences securely across devices.",
+                text = stringResource(R.string.account_sync_description),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -136,7 +137,7 @@ private fun SignedOutCard(
                 GoogleLogo(size = 20)
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = if (isSigningIn) "Signing in..." else "Sign in with Google",
+                    text = stringResource(if (isSigningIn) R.string.account_signing_in else R.string.account_sign_in_google),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -157,12 +158,12 @@ private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Uni
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = "Privacy and data protection",
+                text = stringResource(R.string.privacy_title),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "We use your name and email only to authenticate your account and sync your preferences. We do not sell your personal data.",
+                text = stringResource(R.string.privacy_body),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -171,16 +172,16 @@ private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Uni
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL) }) {
-                    Text("Privacy Policy")
+                    Text(stringResource(R.string.privacy_policy))
                 }
                 TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL) }) {
-                    Text("Terms of Use")
+                    Text(stringResource(R.string.terms_of_use))
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = accepted, onCheckedChange = onAcceptedChange)
                 Text(
-                    text = "I accept the Privacy Policy and Terms of Use.",
+                    text = stringResource(R.string.privacy_accept),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -193,7 +194,7 @@ private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Uni
 private fun GoogleLogo(size: Int) {
     Image(
         painter = painterResource(id = R.drawable.ic_google_logo),
-        contentDescription = "Google Logo",
+        contentDescription = stringResource(R.string.account_google_logo),
         modifier = Modifier.size(size.dp)
     )
 }

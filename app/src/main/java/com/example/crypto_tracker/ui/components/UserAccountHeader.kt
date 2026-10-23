@@ -1,5 +1,7 @@
 package com.example.crypto_tracker.ui.components
 
+import com.example.crypto_tracker.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -48,7 +50,7 @@ fun UserAccountHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = accountLabel ?: "Guest",
+                    text = accountLabel ?: stringResource(R.string.account_guest),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = if (accountLabel != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant

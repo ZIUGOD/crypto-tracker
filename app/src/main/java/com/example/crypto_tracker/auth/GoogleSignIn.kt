@@ -16,7 +16,8 @@ sealed interface SignInResult {
     /** The user dismissed the account picker; nothing should change. */
     data object Cancelled : SignInResult
 
-    data class Failed(val reason: String) : SignInResult
+    /** Any other failure; the cause is logged, the UI shows a generic localized message. */
+    data object Failed : SignInResult
 }
 
 /** Abstraction over the sign-in mechanism so ViewModels can be tested with a fake. */
@@ -50,19 +51,18 @@ class GoogleSignInClient(
             SignInResult.Cancelled
         } catch (e: Exception) {
             Log.w(TAG, "Google sign-in failed", e)
-            SignInResult.Failed(SIGN_IN_FAILED_MESSAGE)
+            SignInResult.Failed
         }
     }
 
     private companion object {
         const val TAG = "GoogleSignIn"
-        const val SIGN_IN_FAILED_MESSAGE = "Couldn't sign you in. Check your connection and try again."
     }
 
     private fun toSignInResult(credential: androidx.credentials.Credential): SignInResult {
         val isGoogleIdToken = credential is CustomCredential &&
             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-        if (!isGoogleIdToken) return SignInResult.Failed(SIGN_IN_FAILED_MESSAGE)
+        if (!isGoogleIdToken) return SignInResult.Failed
 
         val google = GoogleIdTokenCredential.createFrom((credential as CustomCredential).data)
         return SignInResult.Success(

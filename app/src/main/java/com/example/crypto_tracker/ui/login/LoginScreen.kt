@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,6 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val sessionManager = remember { SessionManager(context) }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
@@ -67,20 +69,20 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     ) {
         Image(
             painter = painterResource(R.drawable.app_logo),
-            contentDescription = "Crypto Tracker logo",
+            contentDescription = stringResource(R.string.login_logo_description),
             modifier = Modifier
                 .size(56.dp)
                 .clip(CircleShape)
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Crypto Tracker",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "Sign in to access your live crypto portfolio",
+            text = stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -97,13 +99,13 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "Privacy and data protection (GDPR / LGPD)",
+                    text = stringResource(R.string.login_privacy_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Your name and email are used only for authentication and your local session. We do not sell your data or collect more than is needed to operate the app.",
+                    text = stringResource(R.string.login_privacy_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -112,10 +114,10 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL) }) {
-                        Text("Privacy Policy")
+                        Text(stringResource(R.string.privacy_policy))
                     }
                     TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL) }) {
-                        Text("Terms of Use")
+                        Text(stringResource(R.string.terms_of_use))
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -125,7 +127,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "I accept the Privacy Policy and Terms of Use.",
+                        text = stringResource(R.string.privacy_accept),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -142,11 +144,11 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         is SignInResult.Success -> {
                             sessionManager.savePrivacyConsent()
                             sessionManager.saveUserSession(result.email, result.displayName)
-                            Toast.makeText(context, "Welcome, ${result.displayName}!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, resources.getString(R.string.toast_welcome, result.displayName), Toast.LENGTH_SHORT).show()
                             onLoginSuccess()
                         }
-                        is SignInResult.Failed ->
-                            Toast.makeText(context, result.reason, Toast.LENGTH_LONG).show()
+                        SignInResult.Failed ->
+                            Toast.makeText(context, resources.getString(R.string.sign_in_failed), Toast.LENGTH_LONG).show()
                         SignInResult.Cancelled -> Unit // Account picker dismissed; keep the current session.
                     }
                     isLoading = false
@@ -161,7 +163,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             )
         ) {
             Text(
-                text = if (isLoading) "Signing in..." else "Sign in with Google",
+                text = stringResource(if (isLoading) R.string.account_signing_in else R.string.account_sign_in_google),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(vertical = 4.dp)

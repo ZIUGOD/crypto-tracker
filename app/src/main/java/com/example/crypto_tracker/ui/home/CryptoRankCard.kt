@@ -1,5 +1,11 @@
 package com.example.crypto_tracker.ui.home
 
+import com.example.crypto_tracker.ui.components.appLocale
+import com.example.crypto_tracker.format.formatCurrencyUsd
+import com.example.crypto_tracker.format.formatCompactUsd
+import com.example.crypto_tracker.format.CompactSuffixes
+import com.example.crypto_tracker.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -37,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.crypto_tracker.config.AppConfig
@@ -46,8 +53,6 @@ import com.example.crypto_tracker.ui.components.GlassDefaults
 import com.example.crypto_tracker.ui.components.glassInnerPanelColor
 import com.example.crypto_tracker.ui.theme.FinancialText
 import java.util.Locale
-
-private const val NOT_AVAILABLE = "N/A"
 
 /**
  * One row of the market ranking. Collapsed: rank, logo, name, price, 24h change and the pin switch.
@@ -94,13 +99,15 @@ private fun CardSummary(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // The name side yields to the price: long names/prices (e.g. "US$ 81.239,00") never overlap.
         Row(
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             RankBadge(coin.rank)
             CoinLogo(coin)
-            CoinTitle(coin, isExpanded)
+            CoinTitle(coin, isExpanded, Modifier.weight(1f, fill = false))
         }
 
         Row(
@@ -120,7 +127,7 @@ private fun RankBadge(rank: Int) {
         text = "#$rank",
         style = FinancialText.Rank,
         color = rankColor(rank),
-        modifier = Modifier.width(36.dp)
+        modifier = Modifier.width(30.dp)
     )
 }
 
@@ -171,18 +178,21 @@ private fun CoinLogo(coin: CryptoCoin) {
 }
 
 @Composable
-private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean) {
-    Column {
+private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = coin.name,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = if (isExpanded) "Collapse details" else "Expand details",
+                contentDescription = stringResource(if (isExpanded) R.string.coin_collapse_details else R.string.coin_expand_details),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
@@ -197,6 +207,7 @@ private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean) {
 
 @Composable
 private fun PriceColumn(coin: CryptoCoin) {
+    val locale = appLocale()
     Column(horizontalAlignment = Alignment.End) {
         AnimatedContent(
             targetState = coin.currentPriceUsd,
@@ -204,19 +215,19 @@ private fun PriceColumn(coin: CryptoCoin) {
             label = "priceAnimation"
         ) { price ->
             Text(
-                text = formatCurrencyUsd(price),
+                text = formatCurrencyUsd(price, locale),
                 style = FinancialText.Price,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
         Spacer(modifier = Modifier.height(2.dp))
-        ChangePill(coin.priceChangePercentage24h)
+        ChangePill(coin.priceChangePercentage24h, locale)
     }
 }
 
 /** 24h change. Direction is conveyed by arrow + sign, never by colour alone. */
 @Composable
-private fun ChangePill(percent: Double) {
+private fun ChangePill(percent: Double, locale: Locale) {
     val isPositive = percent >= 0
     val sign = if (isPositive) "+" else ""
     val arrow = if (isPositive) "▲" else "▼"
@@ -226,7 +237,7 @@ private fun ChangePill(percent: Double) {
         color = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
     ) {
         Text(
-            text = "$arrow $sign${String.format(Locale.US, "%.2f", percent)}%",
+            text = "$arrow $sign${String.format(locale, "%.2f", percent)}%",
             style = FinancialText.Change,
             color = if (isPositive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -271,21 +282,19 @@ private fun CardDetails(coin: CryptoCoin) {
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (!coin.description.isNullOrBlank()) {
-            Surface(
-                shape = GlassDefaults.InnerShape,
-                color = glassInnerPanelColor(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = coin.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(10.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
+        Surface(
+            shape = GlassDefaults.InnerShape,
+            color = glassInnerPanelColor(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = coinDescription(coin),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(10.dp)
+            )
         }
+        Spacer(modifier = Modifier.height(12.dp))
 
         MarketStats(coin)
     }
@@ -294,22 +303,54 @@ private fun CardDetails(coin: CryptoCoin) {
     WebDetailsLink(coin.id)
 }
 
+/** Hand-written summary for well-known coins, a generic sentence for the rest; always in the selected language. */
+@Composable
+private fun coinDescription(coin: CryptoCoin): String {
+    val res = CoinDescriptions.resFor(coin.id)
+    return if (res != null) stringResource(res) else stringResource(R.string.coin_desc_generic, coin.name, coin.symbol)
+}
+
 @Composable
 private fun MarketStats(coin: CryptoCoin) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        MarketStatItem("24h High", coin.high24hUsd?.let(::formatCurrencyUsd) ?: NOT_AVAILABLE)
-        MarketStatItem("24h Low", coin.low24hUsd?.let(::formatCurrencyUsd) ?: NOT_AVAILABLE)
-        MarketStatItem("Market Cap", coin.marketCapUsd?.let(::formatCompactUsd) ?: NOT_AVAILABLE)
-        MarketStatItem("24h Volume", coin.totalVolumeUsd?.let(::formatCompactUsd) ?: NOT_AVAILABLE)
+    val locale = appLocale()
+    val notAvailable = stringResource(R.string.coin_stat_not_available)
+    val suffixes = CompactSuffixes(
+        trillion = stringResource(R.string.compact_suffix_trillion),
+        billion = stringResource(R.string.compact_suffix_billion),
+        million = stringResource(R.string.compact_suffix_million)
+    )
+    // 2x2 grid: wider translated values ("US$ 1,63 tri") must not run into each other.
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            MarketStatItem(
+                stringResource(R.string.coin_stat_high_24h),
+                coin.high24hUsd?.let { formatCurrencyUsd(it, locale) } ?: notAvailable,
+                Modifier.weight(1f)
+            )
+            MarketStatItem(
+                stringResource(R.string.coin_stat_low_24h),
+                coin.low24hUsd?.let { formatCurrencyUsd(it, locale) } ?: notAvailable,
+                Modifier.weight(1f)
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            MarketStatItem(
+                stringResource(R.string.coin_stat_market_cap),
+                coin.marketCapUsd?.let { formatCompactUsd(it, locale, suffixes) } ?: notAvailable,
+                Modifier.weight(1f)
+            )
+            MarketStatItem(
+                stringResource(R.string.coin_stat_volume_24h),
+                coin.totalVolumeUsd?.let { formatCompactUsd(it, locale, suffixes) } ?: notAvailable,
+                Modifier.weight(1f)
+            )
+        }
     }
 }
 
 @Composable
-private fun MarketStatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.Start) {
+private fun MarketStatItem(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.Start) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
@@ -334,7 +375,7 @@ private fun WebDetailsLink(coinId: String) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "View details on web ↗",
+            text = stringResource(R.string.coin_view_details_web),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp)

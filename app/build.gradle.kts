@@ -41,6 +41,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    // The user picks the language inside the app (Settings), so every language must ship in the base
+    // APK. With Play's per-language splits, a language the device did not request would be missing.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
     buildFeatures {
         compose = true
         resValues = true

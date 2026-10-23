@@ -1,5 +1,6 @@
 package com.example.crypto_tracker
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -99,14 +100,14 @@ private fun NavigationItem(
     ) {
         Icon(
             painter = painterResource(destination.icon),
-            contentDescription = destination.label,
+            contentDescription = stringResource(destination.labelRes),
             tint = contentColor,
             modifier = Modifier.size(AppConfig.Navigation.NAV_BAR_ICON_SIZE_DP.dp)
         )
         if (AppConfig.Navigation.SHOW_NAVIGATION_LABELS) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = destination.label,
+                text = stringResource(destination.labelRes),
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 11.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,

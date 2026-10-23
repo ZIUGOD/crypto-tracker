@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Português (Brasil). Mantenha exatamente as mesmas chaves de values/strings.xml. -->
+<resources>
+    <!-- Navigation -->
+    <string name="nav_home">Início</string>
+    <string name="nav_news">Notícias</string>
+    <string name="nav_settings">Configurações</string>
+
+    <!-- Account badge -->
+    <string name="account_guest">Convidado</string>
+
+    <!-- Home -->
+    <string name="home_title">Top %1$d Criptomoedas</string>
+    <string name="home_subtitle">Fixe até %1$d preços ao vivo na sua barra de notificações</string>
+    <string name="home_status_updating">Atualizando rankings...</string>
+    <string name="home_status_auto_refresh">Atualiza automaticamente a cada 1 min</string>
+    <string name="home_status_updated">Atualizado: %1$s</string>
+    <string name="home_status_saved">Dados salvos de %1$s</string>
+    <string name="home_loading">Carregando o ranking das %1$d maiores do mercado...</string>
+    <string name="home_error_no_connection_title">Sem conexão com a internet</string>
+    <string name="home_error_no_connection_hint">Conecte-se à internet para carregar os rankings e continuar usando o app.</string>
+    <string name="home_error_unavailable_title">Dados de mercado indisponíveis</string>
+    <string name="home_error_unavailable_hint">Algo deu errado do nosso lado. Tente novamente em instantes.</string>
+    <string name="home_try_again">Tentar novamente</string>
+    <string name="home_pin_limit_reached">Máximo de %1$d criptomoedas permitidas para notificações</string>
+
+    <!-- Coin card -->
+    <string name="coin_expand_details">Expandir detalhes</string>
+    <string name="coin_collapse_details">Recolher detalhes</string>
+    <string name="coin_stat_high_24h">Máx. 24h</string>
+    <string name="coin_stat_low_24h">Mín. 24h</string>
+    <string name="coin_stat_market_cap">Cap. de Mercado</string>
+    <string name="coin_stat_volume_24h">Volume 24h</string>
+    <string name="coin_stat_not_available">N/D</string>
+    <string name="coin_view_details_web">Ver detalhes na web ↗</string>
+    <string name="compact_suffix_trillion">&#160;tri</string>
+    <string name="compact_suffix_billion">&#160;bi</string>
+    <string name="compact_suffix_million">&#160;mi</string>
+
+    <!-- Coin summaries -->
+    <string name="coin_desc_generic">%1$s (%2$s) é uma das principais criptomoedas do mundo em capitalização de mercado.</string>
+    <string name="coin_desc_bitcoin">O Bitcoin (BTC) é a primeira moeda digital descentralizada ponto a ponto do mundo, criada para funcionar como reserva de valor e ouro digital.</string>
+    <string name="coin_desc_ethereum">O Ethereum (ETH) é uma plataforma descentralizada de contratos inteligentes que sustenta aplicativos descentralizados (dApps), DeFi e ecossistemas Web3.</string>
+    <string name="coin_desc_tether">O Tether (USDt) é uma stablecoin pioneira, lastreada em moeda fiduciária e atrelada 1:1 ao dólar americano, para trazer estabilidade aos mercados de criptomoedas.</string>
+    <string name="coin_desc_binancecoin">O BNB impulsiona o ecossistema da BNB Chain, com utilidade em descontos em taxas de negociação, protocolos DeFi e contratos inteligentes.</string>
+    <string name="coin_desc_solana">A Solana (SOL) é uma blockchain de alto desempenho criada para velocidade e transações de baixo custo, com suporte a NFTs, DeFi e Web3.</string>
+    <string name="coin_desc_ripple">O XRP foi projetado para pagamentos internacionais rápidos e de baixo custo e para remessas de instituições financeiras.</string>
+    <string name="coin_desc_usd_coin">O USDC é uma stablecoin do dólar americano totalmente lastreada, que oferece liquidez em dólar e liquidação instantânea em toda a Web3.</string>
+    <string name="coin_desc_cardano">A Cardano (ADA) é uma plataforma blockchain de prova de participação (proof-of-stake), projetada para segurança, sustentabilidade e contratos inteligentes revisados por pares.</string>
+    <string name="coin_desc_dogecoin">O Dogecoin (DOGE) é uma criptomoeda ponto a ponto de código aberto, nascida da cultura de memes da internet e com uma comunidade vibrante.</string>
+    <string name="coin_desc_avalanche">A Avalanche (AVAX) é uma plataforma de contratos inteligentes ultrarrápida, projetada para aplicações empresariais e DeFi escaláveis.</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Preços de Cripto ao Vivo</string>
+    <string name="notification_channel_description">Notificações persistentes que mantêm você atualizado com os preços das criptomoedas ao vivo</string>
+
+    <!-- News -->
+    <string name="news_title">Notícias do Mercado</string>
+    <string name="news_subtitle">Últimas manchetes e atualizações do mercado</string>
+    <string name="news_under_construction_title">Em Construção</string>
+    <string name="news_under_construction_body">A seção de notícias está em desenvolvimento. Em breve, notícias do mercado em tempo real e análises sobre criptomoedas estarão disponíveis aqui!</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_subtitle">Personalize as preferências do app e a sua conta</string>
+
+    <string name="theme_title">Tema do App</string>
+    <string name="theme_description">Escolha entre o modo Claro, Escuro ou Automático do sistema</string>
+    <string name="theme_system_title">Automático (padrão do sistema)</string>
+    <string name="theme_system_subtitle">Segue o tema do sistema do seu dispositivo</string>
+    <string name="theme_light_title">Tema Claro</string>
+    <string name="theme_light_subtitle">Sempre usar a aparência clara</string>
+    <string name="theme_dark_title">Tema Escuro</string>
+    <string name="theme_dark_subtitle">Sempre usar a aparência escura</string>
+
+    <string name="language_title">Idioma</string>
+    <string name="language_description">Escolha o idioma usado em todo o app</string>
+
+    <string name="account_title">Conta</string>
+    <string name="account_sign_out">Sair</string>
+    <string name="account_sign_in_google">Entrar com o Google</string>
+    <string name="account_signing_in">Entrando...</string>
+    <string name="account_sync_description">Entre para fazer backup e sincronizar com segurança as preferências da sua carteira entre dispositivos.</string>
+    <string name="account_google_logo">Logotipo do Google</string>
+
+    <string name="privacy_title">Privacidade e proteção de dados</string>
+    <string name="privacy_body">Usamos seu nome e e-mail apenas para autenticar sua conta e sincronizar suas preferências. Não vendemos seus dados pessoais.</string>
+    <string name="privacy_policy">Política de Privacidade</string>
+    <string name="terms_of_use">Termos de Uso</string>
+    <string name="privacy_accept">Aceito a Política de Privacidade e os Termos de Uso.</string>
+
+    <string name="toast_welcome">Boas-vindas, %1$s!</string>
+    <string name="sign_in_failed">Não foi possível fazer o login. Verifique sua conexão e tente novamente.</string>
+
+    <!-- About -->
+    <string name="about_title">Sobre o Crypto Tracker</string>
+    <string name="about_purpose_title">Finalidade e Recursos do App</string>
+    <string name="about_summary">O Crypto Tracker oferece visibilidade rápida e sem complicações do mercado para traders ativos e entusiastas de criptomoedas.</string>
+    <string name="about_feature_rankings_title">Top %1$d Rankings ao Vivo</string>
+    <string name="about_feature_rankings_description">Rankings de valor de mercado em tempo real, atualizados automaticamente a cada 1 minuto.</string>
+    <string name="about_feature_notifications_title">Notificações na Barra de Status</string>
+    <string name="about_feature_notifications_description">Fixe até %1$d moedas favoritas para ver os preços ao vivo na hora, sem abrir o app.</string>
+    <string name="about_feature_privacy_title">Privacidade e Dados Locais</string>
+    <string name="about_feature_privacy_description">Suas preferências são armazenadas localmente, com sincronização opcional com a Conta Google.</string>
+
+    <!-- Login -->
+    <string name="login_logo_description">Logotipo do Crypto Tracker</string>
+    <string name="login_subtitle">Entre para acessar sua carteira de criptomoedas ao vivo</string>
+    <string name="login_privacy_title">Privacidade e proteção de dados (GDPR / LGPD)</string>
+    <string name="login_privacy_body">Seu nome e e-mail são usados apenas para autenticação e para a sua sessão local. Não vendemos seus dados nem coletamos mais do que o necessário para o funcionamento do app.</string>
+</resources>

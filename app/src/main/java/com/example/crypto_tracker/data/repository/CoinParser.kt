@@ -40,8 +40,7 @@ object CoinParser {
             high24hUsd = obj.optDoubleOrNull("high_24h"),
             low24hUsd = obj.optDoubleOrNull("low_24h"),
             marketCapUsd = obj.optDoubleOrNull("market_cap"),
-            totalVolumeUsd = obj.optDoubleOrNull("total_volume"),
-            description = CoinDescriptions.forCoin(id, name, symbol)
+            totalVolumeUsd = obj.optDoubleOrNull("total_volume")
         )
     }
 
@@ -58,8 +57,7 @@ object CoinParser {
             priceChangePercentage24h = obj.getString("changePercent24Hr").toDoubleOrNull() ?: 0.0,
             imageUrl = AppConfig.Network.coincapIconUrl(symbol.lowercase()),
             marketCapUsd = obj.getString("marketCapUsd").toDoubleOrNull(),
-            totalVolumeUsd = obj.getString("volumeUsd24Hr").toDoubleOrNull(),
-            description = CoinDescriptions.forCoin(id, name, symbol)
+            totalVolumeUsd = obj.getString("volumeUsd24Hr").toDoubleOrNull()
         )
     }
 

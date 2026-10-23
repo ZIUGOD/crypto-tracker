@@ -1,5 +1,7 @@
 package com.example.crypto_tracker.ui.news
 
+import com.example.crypto_tracker.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,8 +31,8 @@ fun NewsScreen(modifier: Modifier = Modifier) {
     ) {
         // Standardized Screen Header
         ScreenHeader(
-            title = "Market News",
-            subtitle = "Latest headlines and market updates"
+            title = stringResource(R.string.news_title),
+            subtitle = stringResource(R.string.news_subtitle)
         )
 
         GlassCard(
@@ -41,13 +43,13 @@ fun NewsScreen(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Under Construction",
+                    text = stringResource(R.string.news_under_construction_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "The news section is currently under active development. Real-time market news and crypto insights will be available here soon!",
+                    text = stringResource(R.string.news_under_construction_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

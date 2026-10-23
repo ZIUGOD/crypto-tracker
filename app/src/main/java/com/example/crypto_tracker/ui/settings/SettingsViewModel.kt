@@ -8,6 +8,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.crypto_tracker.auth.GoogleSignIn
 import com.example.crypto_tracker.auth.SignInResult
+import com.example.crypto_tracker.data.preferences.AppLanguage
+import com.example.crypto_tracker.data.preferences.LanguagePreferences
+import com.example.crypto_tracker.data.preferences.LanguageStore
 import com.example.crypto_tracker.data.preferences.SessionManager
 import com.example.crypto_tracker.data.preferences.SessionStore
 import com.example.crypto_tracker.data.preferences.ThemeMode
@@ -29,6 +32,7 @@ sealed interface AccountState {
 
 data class SettingsUiState(
     val themeMode: ThemeMode,
+    val language: AppLanguage,
     val account: AccountState,
     val privacyAccepted: Boolean = false,
     val isSigningIn: Boolean = false
@@ -37,19 +41,25 @@ data class SettingsUiState(
     val canSignIn: Boolean get() = privacyAccepted && !isSigningIn
 }
 
-/** One-off messages shown as toasts by the screen. */
+/** One-off messages shown as toasts by the screen, which owns their (localized) text. */
 sealed interface SettingsEvent {
-    data class Message(val text: String, val isLong: Boolean = false) : SettingsEvent
+    data class Welcome(val displayName: String) : SettingsEvent
+    data object SignInFailed : SettingsEvent
 }
 
-/** Owns theme choice and account/session state for the Settings screen. */
+/** Owns theme and language choice and account/session state for the Settings screen. */
 class SettingsViewModel(
     private val themeStore: ThemeStore,
+    private val languageStore: LanguageStore,
     private val sessionStore: SessionStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        SettingsUiState(themeMode = themeStore.getThemeMode(), account = loadAccount())
+        SettingsUiState(
+            themeMode = themeStore.getThemeMode(),
+            language = languageStore.getLanguage(),
+            account = loadAccount()
+        )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
@@ -59,6 +69,11 @@ class SettingsViewModel(
     fun setThemeMode(mode: ThemeMode) {
         themeStore.setThemeMode(mode)
         _uiState.update { it.copy(themeMode = mode) }
+    }
+
+    fun setLanguage(language: AppLanguage) {
+        languageStore.setLanguage(language)
+        _uiState.update { it.copy(language = language) }
     }
 
     fun setPrivacyAccepted(accepted: Boolean) {
@@ -72,7 +87,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             when (val result = googleSignIn.signIn()) {
                 is SignInResult.Success -> onSignedIn(result)
-                is SignInResult.Failed -> _events.tryEmit(SettingsEvent.Message(result.reason, isLong = true))
+                SignInResult.Failed -> _events.tryEmit(SettingsEvent.SignInFailed)
                 SignInResult.Cancelled -> Unit
             }
             _uiState.update { it.copy(isSigningIn = false) }
@@ -88,20 +103,20 @@ class SettingsViewModel(
         sessionStore.savePrivacyConsent()
         sessionStore.saveUserSession(result.email, result.displayName)
         _uiState.update { it.copy(account = AccountState.SignedIn(result.displayName, result.email)) }
-        _events.tryEmit(SettingsEvent.Message("Welcome, ${result.displayName}!"))
+        _events.tryEmit(SettingsEvent.Welcome(result.displayName))
     }
 
     private fun loadAccount(): AccountState {
         val email = sessionStore.getUserEmail()
         if (!sessionStore.isLoggedIn() || email == null) return AccountState.SignedOut
-        return AccountState.SignedIn(sessionStore.getUserName() ?: "Authenticated User", email)
+        return AccountState.SignedIn(sessionStore.getUserName() ?: email.substringBefore("@"), email)
     }
 
     companion object {
         val Factory = viewModelFactory {
             initializer {
                 val app = checkNotNull(this[APPLICATION_KEY]) as Application
-                SettingsViewModel(ThemePreferences(app), SessionManager(app))
+                SettingsViewModel(ThemePreferences(app), LanguagePreferences(app), SessionManager(app))
             }
         }
     }

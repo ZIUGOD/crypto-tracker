@@ -3,7 +3,9 @@ package com.example.crypto_tracker
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.content.Context
 import android.os.Bundle
+import androidx.annotation.StringRes
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +32,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.crypto_tracker.config.AppConfig
+import com.example.crypto_tracker.data.preferences.AppLanguage
+import com.example.crypto_tracker.data.preferences.AppLocale
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.notification.CryptoPriceWorker
@@ -51,6 +55,11 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { _ ->
         // Handle permission grant/denial if needed
+    }
+
+    /** Loads every resource in the language saved in Settings (English by default). */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocale.wrap(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,7 +105,9 @@ class MainActivity : ComponentActivity() {
                 CryptotrackerApp(
                     onThemeChanged = { newMode ->
                         themeMode = newMode
-                    }
+                    },
+                    // Strings are resolved when the Activity is created, so recreate it to apply the new language.
+                    onLanguageChanged = { recreate() }
                 )
             }
         }
@@ -107,11 +118,13 @@ class MainActivity : ComponentActivity() {
  * Top-level application composable managing customizable bottom navigation scaffold and destination screens.
  *
  * @param onThemeChanged Callback invoked when theme mode changes.
+ * @param onLanguageChanged Callback invoked after the user picks another language.
  */
 @PreviewScreenSizes
 @Composable
 fun CryptotrackerApp(
-    onThemeChanged: (ThemeMode) -> Unit = {}
+    onThemeChanged: (ThemeMode) -> Unit = {},
+    onLanguageChanged: (AppLanguage) -> Unit = {}
 ) {
     // Retains selected destination state across configuration changes
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
@@ -144,7 +157,8 @@ fun CryptotrackerApp(
                 AppDestinations.NEWS -> NewsScreen(modifier = Modifier.padding(innerPadding))
                 AppDestinations.SETTINGS -> SettingsScreen(
                     modifier = Modifier.padding(innerPadding),
-                    onThemeChanged = onThemeChanged
+                    onThemeChanged = onThemeChanged,
+                    onLanguageChanged = onLanguageChanged
                 )
             }
         }
@@ -154,14 +168,14 @@ fun CryptotrackerApp(
 /**
  * Enumeration of main top-level navigation destinations in the application.
  *
- * @property label Localized display label for bottom navigation item.
+ * @property labelRes String resource with the localized label of the bottom navigation item.
  * @property icon Vector drawable resource ID for bottom navigation item.
  */
 enum class AppDestinations(
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: Int,
 ) {
-    HOME("Home", R.drawable.ic_home),
-    NEWS("News", R.drawable.ic_news),
-    SETTINGS("Settings", R.drawable.baseline_settings_24),
+    HOME(R.string.nav_home, R.drawable.ic_home),
+    NEWS(R.string.nav_news, R.drawable.ic_news),
+    SETTINGS(R.string.nav_settings, R.drawable.baseline_settings_24),
 }

@@ -1,6 +1,5 @@
 package com.example.crypto_tracker.data
 
-import com.example.crypto_tracker.data.repository.CoinDescriptions
 import com.example.crypto_tracker.data.repository.CoinParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -57,20 +56,5 @@ class CoinParserTest {
         assertEquals(60000.12, coin.currentPriceUsd, 0.0)
         assertEquals(1000.0, coin.marketCapUsd!!, 0.0)
         assertTrue(coin.imageUrl!!.endsWith("btc@2x.png"))
-    }
-
-    @Test
-    fun descriptions_resolveProviderAliases() {
-        assertEquals(
-            CoinDescriptions.forCoin("ripple", "XRP", "XRP"),
-            CoinDescriptions.forCoin("xrp", "XRP", "XRP")
-        )
-    }
-
-    @Test
-    fun descriptions_fallBackToGenericSentence() {
-        val text = CoinDescriptions.forCoin("unknown-coin", "Unknown", "UNK")
-
-        assertTrue(text.startsWith("Unknown (UNK)"))
     }
 }
