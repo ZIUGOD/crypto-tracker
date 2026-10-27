@@ -17,7 +17,7 @@ data/          model/, repository/ (CryptoRepository, CachingCryptoRepository, C
 notification/  PinnedCoinsStore + PriceNotifier (interfaces), their Android implementations, WorkManager worker
 ui/theme/      Color.kt (tokens), Theme.kt (Material scheme + shapes), Type.kt (+ FinancialText)
 ui/components/ Glass.kt (design system), ScreenHeader, UserAccountHeader, BannerAdView
-ui/home/       HomeScreen (+ stateless HomeContent), HomeViewModel, CryptoRankCard, CoinFormatters
+ui/home/       HomeScreen (+ stateless HomeContent), HomeViewModel, CryptoRankCard (+ CoinCardDetails), CoinFormatters
 ui/settings/   SettingsScreen, SettingsViewModel, ThemeSection, AccountSection, AboutSection
 ui/news/       NewsScreen (placeholder)
 ```
@@ -66,5 +66,5 @@ ui/news/       NewsScreen (placeholder)
 - [x] AdMob: production IDs are set per build type in `app/build.gradle.kts` (debug keeps the sample IDs).
 - [ ] Publish `docs/` on GitHub Pages: repo Settings > Pages > Deploy from a branch, branch `master`, folder `/docs` (URL `https://ziugod.github.io/crypto-tracker/`; it must match `AppConfig.Legal`; the repo must stay public). The pages in `docs/` (English and `docs/pt-br/`) are written for `AppConfig.Account.LOGIN_ENABLED = false`; if login is turned on, add the account data back to the privacy policy first. They have not had a legal review.
 - [x] Fallback price provider is CoinPaprika (CoinCap v2 was retired). Request limits live in `AppConfig.RateLimit`; behavior is in `CryptoRepository` / `ProviderGuard`.
-- [ ] Move user-facing strings to `strings.xml` (needed for translation).
+- [x] User-facing strings live in `strings.xml` (English + pt-BR).
 - [ ] Visual pass on a real device: both themes, small screens, font scale 1.3x, Android 11 (no blur).
