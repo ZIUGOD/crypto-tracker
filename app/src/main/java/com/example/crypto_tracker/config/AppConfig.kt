@@ -125,7 +125,8 @@ object AppConfig {
         /** Maximum number of cryptocurrencies allowed for notification pinning */
         const val MAX_NOTIFIED_COINS = 5
 
-        const val CHANNEL_ID = "crypto_price_channel"
+        /** A channel's importance cannot change after creation, so raising it required a new ID. */
+        const val CHANNEL_ID = "crypto_price_status"
 
         /** Base for per-coin notification IDs; each coin gets BASE + (hash % ID_RANGE). */
         const val NOTIFICATION_BASE_ID = 2000

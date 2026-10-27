@@ -99,8 +99,8 @@ Confira o texto do guia do AdMob na hora de preencher, porque o Google atualiza 
 - Países: **Brasil** por enquanto. Sem tela de consentimento de anúncios (UMP), não distribua para o Espaço Econômico Europeu nem para o Reino Unido.
 
 ### Materiais da ficha
-- Ícone 512×512 px, imagem de destaque 1024×500 px e pelo menos 2 capturas de tela de celular (use o emulador ou o aparelho).
-- Descrição curta (até 80 caracteres) e completa, em inglês e português, deixando claro que os preços vêm de terceiros e que o app não dá conselho financeiro.
+- Já gerados em `C:\Users\caiqu\Pictures\crypto-tracker-play\`: `icon-512.png`, e em `en\` e `pt-BR\` a `feature-graphic.png` (1024×500) e 3 capturas de tela (`1-home`, `2-details`, `3-settings`). Se mudar a interface, tire as capturas de novo.
+- Textos prontos em inglês e português (descrição curta e completa, já com o aviso de que os preços vêm de terceiros e que o app não dá conselho financeiro): [`PLAY_LISTING.md`](PLAY_LISTING.md).
 - E-mail de contato: o mesmo da política de privacidade.
 
 ## 7. Enviar

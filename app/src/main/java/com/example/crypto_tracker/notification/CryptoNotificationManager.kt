@@ -50,7 +50,8 @@ class CryptoNotificationManager(baseContext: Context) : PriceNotifier {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(coin.name)
             .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOnlyAlertOnce(true)
             .setOngoing(false)
             .setAutoCancel(false)
             .setContentIntent(openAppIntent(coin))
@@ -74,9 +75,12 @@ class CryptoNotificationManager(baseContext: Context) : PriceNotifier {
         val channel = NotificationChannel(
             AppConfig.Notifications.CHANNEL_ID,
             context.getString(R.string.notification_channel_name),
-            NotificationManager.IMPORTANCE_LOW
+            // DEFAULT (not LOW) so the small icon shows in the status bar; silent channels are hidden there.
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = context.getString(R.string.notification_channel_description)
+            setSound(null, null)
+            enableVibration(false)
         }
         systemManager.createNotificationChannel(channel)
     }
