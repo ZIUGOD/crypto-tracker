@@ -62,7 +62,7 @@
 
     <!-- Settings -->
     <string name="settings_title">Configurações</string>
-    <string name="settings_subtitle">Personalize as preferências do app e a sua conta</string>
+    <string name="settings_subtitle">Personalize as preferências do app</string>
 
     <string name="theme_title">Tema do App</string>
     <string name="theme_description">Escolha entre o modo Claro, Escuro ou Automático do sistema</string>

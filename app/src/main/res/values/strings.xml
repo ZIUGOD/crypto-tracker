@@ -69,7 +69,7 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_subtitle">Customize your app preferences and account</string>
+    <string name="settings_subtitle">Customize your app preferences</string>
 
     <string name="theme_title">App Theme</string>
     <string name="theme_description">Choose between Light, Dark, or System automatic mode</string>
