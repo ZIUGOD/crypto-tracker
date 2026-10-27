@@ -7,7 +7,6 @@
 <resources>
     <!-- Brand / configuration (not translated) -->
     <string name="app_name" translatable="false">Crypto Tracker</string>
-    <string name="google_web_client_id" translatable="false">991627423046-1h46ij6ki5f4722t3bqbar13euvbq80m.apps.googleusercontent.com</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
