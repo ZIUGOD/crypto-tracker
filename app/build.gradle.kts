@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -30,6 +32,23 @@ android {
         resValue("string", "google_web_client_id", googleWebClientId)
     }
 
+    // Upload key for the Play Store. Credentials live in keystore.properties (project root, git-ignored);
+    // without that file the release build is simply left unsigned. See PLAY_RELEASE.md.
+    val keystoreProperties = Properties().apply {
+        val file = rootProject.file("keystore.properties")
+        if (file.isFile) file.inputStream().use { load(it) }
+    }
+    signingConfigs {
+        if (keystoreProperties.containsKey("storeFile")) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         // AdMob: debug always uses Google's sample IDs so development never produces real impressions
         // or clicks (policy violation); only release uses the production IDs.
@@ -40,6 +59,7 @@ android {
         release {
             manifestPlaceholders["admobAppId"] = "ca-app-pub-9399548772812079~1855065116"
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-9399548772812079/3355763327\"")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             optimization {
                 enable = true
             }
