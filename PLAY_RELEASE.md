@@ -61,8 +61,7 @@ Confira o texto do guia do AdMob antes de enviar o formulário, porque o Google 
 - Categoria: Finanças. O app **não** é corretora nem dá conselho: a descrição deve dizer que é só informativo.
 - Países: **Brasil** por enquanto (sem tela de consentimento de anúncios, o UMP, não distribua para o Espaço Econômico Europeu e o Reino Unido).
 
-## 4. Pendência técnica: CoinCap
-A API `api.coincap.io` (v2) foi desativada: o domínio não existe mais. O app tenta a CoinGecko e, se falhar, o fallback da CoinCap, que sempre falha.
-- Efeito: sem a CoinGecko (limite de requisições ou queda), o app usa o cache salvo. Funciona, mas sem o plano B.
-- Os ícones em `assets.coincap.io` ainda respondem.
-- Decisão em aberto: trocar o fallback por outro provedor gratuito (por exemplo CoinPaprika) ou remover o fallback. Não bloqueia a publicação.
+## 4. Preços: provedores e proteção contra excesso de requisições
+- Principal: CoinGecko. Plano B: CoinPaprika (gratuita, sem chave). A CoinCap v2 foi desativada e foi removida.
+- Proteção (valores em `AppConfig.RateLimit`): uma requisição por vez; resultado reutilizado por 15 s; provedor que falha (HTTP 429/5xx, timeout, resposta inválida) fica de fora por 30 s, dobrando até 10 min, ou pelo `Retry-After` do servidor. Sem internet não há penalidade.
+- Se os dois provedores ficarem indisponíveis, o app mostra os dados salvos.

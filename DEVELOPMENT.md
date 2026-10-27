@@ -65,6 +65,6 @@ ui/news/       NewsScreen (placeholder)
 ## Before release checklist
 - [x] AdMob: production IDs are set per build type in `app/build.gradle.kts` (debug keeps the sample IDs).
 - [ ] Publish `docs/` on GitHub Pages: repo Settings > Pages > Deploy from a branch, branch `master`, folder `/docs` (URL `https://ziugod.github.io/crypto-tracker/`; it must match `AppConfig.Legal`; the repo must stay public). The pages in `docs/` (English and `docs/pt-br/`) are written for `AppConfig.Account.LOGIN_ENABLED = false`; if login is turned on, add the account data back to the privacy policy first. They have not had a legal review.
-- [ ] Verify the CoinCap fallback endpoint still exists (CoinCap v2 may be retired).
+- [x] Fallback price provider is CoinPaprika (CoinCap v2 was retired). Request limits live in `AppConfig.RateLimit`; behavior is in `CryptoRepository` / `ProviderGuard`.
 - [ ] Move user-facing strings to `strings.xml` (needed for translation).
 - [ ] Visual pass on a real device: both themes, small screens, font scale 1.3x, Android 11 (no blur).

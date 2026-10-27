@@ -5,7 +5,7 @@ import com.example.crypto_tracker.R
 
 /**
  * Maps well-known coins to their translated summary (`coin_desc_*` in strings.xml). To add a coin,
- * add one entry to [KNOWN] keyed by its CoinGecko/CoinCap id plus the string in every language;
+ * add one entry to [KNOWN] keyed by its CoinGecko id plus the string in every language;
  * unknown coins get the generic sentence (`coin_desc_generic`).
  */
 object CoinDescriptions {

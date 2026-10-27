@@ -18,3 +18,7 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+
+# Local-only: compiler error logs and the Android Studio run-device selection (device serials, user paths)
+/.kotlin/
+/.idea/deploymentTargetSelector.xml

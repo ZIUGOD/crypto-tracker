@@ -106,7 +106,7 @@ class HomeViewModelTest {
 
     @Test
     fun reportsNoConnectionWhenTheDeviceIsOffline() = runTest(dispatcher) {
-        val vm = viewModel(repo = FakeRepository(Result.failure(UnknownHostException("api.coincap.io"))))
+        val vm = viewModel(repo = FakeRepository(Result.failure(UnknownHostException("api.coingecko.com"))))
         vm.settle()
 
         assertEquals(HomeUiState.Error(HomeError.NO_CONNECTION), vm.uiState.value)

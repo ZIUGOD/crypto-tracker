@@ -44,17 +44,31 @@ class CoinParserTest {
         assertEquals(3100.0, ethereum.high24hUsd!!, 0.0)
     }
 
+    private fun paprikaJson(id: String, symbol: String, rank: Int) = """
+        {"id":"$id","name":"N","symbol":"$symbol","rank":$rank,
+         "quotes":{"USD":{"price":60000.12,"volume_24h":500.0,"market_cap":1000.0,"percent_change_24h":1.5}}}
+    """.trimIndent()
+
     @Test
-    fun coinCap_parsesStringEncodedNumbers() {
-        val json = """
-            {"data":[{"id":"bitcoin","rank":"1","symbol":"BTC","name":"Bitcoin","priceUsd":"60000.12",
-              "changePercent24Hr":"1.5","marketCapUsd":"1000","volumeUsd24Hr":"500"}]}
-        """.trimIndent()
+    fun coinPaprika_mapsFieldsAndBuildsTheLogoUrl() {
+        val coin = CoinParser.fromCoinPaprika("[${paprikaJson("btc-bitcoin", "BTC", 1)}]").single()
 
-        val coin = CoinParser.fromCoinCap(json).single()
-
+        assertEquals("bitcoin", coin.id)
         assertEquals(60000.12, coin.currentPriceUsd, 0.0)
+        assertEquals(1.5, coin.priceChangePercentage24h, 0.0)
         assertEquals(1000.0, coin.marketCapUsd!!, 0.0)
-        assertTrue(coin.imageUrl!!.endsWith("btc@2x.png"))
+        assertEquals(500.0, coin.totalVolumeUsd!!, 0.0)
+        assertTrue(coin.imageUrl!!.endsWith("/btc-bitcoin/logo.png"))
+    }
+
+    @Test
+    fun coinPaprika_idsMatchCoinGeckoSoPinsAndDescriptionsKeepWorking() {
+        val json = "[" + listOf(
+            paprikaJson("bnb-binance-coin", "BNB", 2),
+            paprikaJson("xrp-xrp", "XRP", 3),
+            paprikaJson("usdc-usd-coin", "USDC", 4)
+        ).joinToString(",") + "]"
+
+        assertEquals(listOf("binancecoin", "ripple", "usd-coin"), CoinParser.fromCoinPaprika(json).map { it.id })
     }
 }

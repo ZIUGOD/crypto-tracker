@@ -82,14 +82,27 @@ object AppConfig {
         val COINGECKO_TOP_COINS_URL =
             "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${Market.TOP_COINS_COUNT}&page=1&sparkline=false"
 
-        val COINCAP_TOP_COINS_URL =
-            "https://api.coincap.io/v2/assets?limit=${Market.TOP_COINS_COUNT}"
+        /** Fallback provider (free, no API key). Its ids differ from CoinGecko's; see [CoinParser]. */
+        val COINPAPRIKA_TOP_COINS_URL =
+            "https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=${Market.TOP_COINS_COUNT}"
 
         /** Public web page of a coin; append the coin id. */
         const val COIN_DETAILS_PAGE_URL = "https://www.coingecko.com/en/coins/"
 
-        fun coincapIconUrl(symbolLower: String): String =
-            "https://assets.coincap.io/assets/icons/$symbolLower@2x.png"
+        fun coinpaprikaIconUrl(paprikaId: String): String =
+            "https://static.coinpaprika.com/coin/$paprikaId/logo.png"
+    }
+
+    // Protection against excessive requests to the price providers (see CryptoRepository)
+    object RateLimit {
+        /** A fetch this soon after the last good one returns that result instead of calling a provider. */
+        const val MIN_FETCH_INTERVAL_MS = 15_000L
+
+        /** First wait after a provider fails; it doubles on each further failure. Also the minimum wait. */
+        const val BACKOFF_INITIAL_MS = 30_000L
+
+        /** Longest a failing provider is left alone (also caps a server's Retry-After). */
+        const val BACKOFF_MAX_MS = 600_000L
     }
 
     // Polling & Background Sync Timings

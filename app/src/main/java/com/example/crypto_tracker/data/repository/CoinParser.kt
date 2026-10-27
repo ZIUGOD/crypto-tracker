@@ -18,11 +18,22 @@ object CoinParser {
             .sortedBy { it.rank }
     }
 
-    fun fromCoinCap(json: String): List<CryptoCoin> {
-        val array = JSONObject(json).getJSONArray("data")
+    fun fromCoinPaprika(json: String): List<CryptoCoin> {
+        val array = JSONArray(json)
         return (0 until array.length())
-            .map { index -> coinCapCoin(array.getJSONObject(index), fallbackRank = index + 1) }
+            .map { index -> coinPaprikaCoin(array.getJSONObject(index), fallbackRank = index + 1) }
             .sortedBy { it.rank }
+    }
+
+    /** CoinPaprika ids are `<symbol>-<slug>`; the app keys coins by the CoinGecko id (pins, descriptions, links). */
+    private val paprikaSlugToCoinGeckoId = mapOf(
+        "binance-coin" to "binancecoin",
+        "xrp" to "ripple"
+    )
+
+    private fun coinGeckoIdOf(paprikaId: String, symbol: String): String {
+        val slug = paprikaId.removePrefix("${symbol.lowercase()}-")
+        return paprikaSlugToCoinGeckoId[slug] ?: slug
     }
 
     private fun coinGeckoCoin(obj: JSONObject, fallbackRank: Int): CryptoCoin {
@@ -44,20 +55,20 @@ object CoinParser {
         )
     }
 
-    private fun coinCapCoin(obj: JSONObject, fallbackRank: Int): CryptoCoin {
-        val id = obj.getString("id")
-        val name = obj.getString("name")
+    private fun coinPaprikaCoin(obj: JSONObject, fallbackRank: Int): CryptoCoin {
+        val paprikaId = obj.getString("id")
         val symbol = obj.getString("symbol").uppercase()
+        val usd = obj.getJSONObject("quotes").getJSONObject("USD")
         return CryptoCoin(
-            id = id,
+            id = coinGeckoIdOf(paprikaId, symbol),
             rank = obj.optInt("rank", fallbackRank),
             symbol = symbol,
-            name = name,
-            currentPriceUsd = obj.getString("priceUsd").toDoubleOrNull() ?: 0.0,
-            priceChangePercentage24h = obj.getString("changePercent24Hr").toDoubleOrNull() ?: 0.0,
-            imageUrl = AppConfig.Network.coincapIconUrl(symbol.lowercase()),
-            marketCapUsd = obj.getString("marketCapUsd").toDoubleOrNull(),
-            totalVolumeUsd = obj.getString("volumeUsd24Hr").toDoubleOrNull()
+            name = obj.getString("name"),
+            currentPriceUsd = usd.getDouble("price"),
+            priceChangePercentage24h = usd.optDouble("percent_change_24h", 0.0),
+            imageUrl = AppConfig.Network.coinpaprikaIconUrl(paprikaId),
+            marketCapUsd = usd.optDoubleOrNull("market_cap"),
+            totalVolumeUsd = usd.optDoubleOrNull("volume_24h")
         )
     }
 
