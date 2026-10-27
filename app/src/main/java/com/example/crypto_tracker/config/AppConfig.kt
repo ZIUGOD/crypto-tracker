@@ -1,5 +1,7 @@
 package com.example.crypto_tracker.config
 
+import com.example.crypto_tracker.BuildConfig
+
 /**
  * Centralized Application Configuration object.
  *
@@ -119,15 +121,26 @@ object AppConfig {
 
     // Advertising
     object Ads {
-        /** Google test banner unit. Replace with the real unit ID (and the manifest APPLICATION_ID) before release. */
-        const val BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
+        /** Banner unit: Google's sample unit in debug builds, the production unit in release (set in app/build.gradle.kts). */
+        val BANNER_AD_UNIT_ID: String = BuildConfig.ADMOB_BANNER_UNIT_ID
         const val BANNER_HEIGHT_DP = 50
+    }
+
+    // Account
+    object Account {
+        /**
+         * Master switch for Google sign-in. When false the app is guest-only: no account badge,
+         * no Account section in Settings and no Google Credential Manager is created; the legal
+         * links stay in Settings. Turning it on again needs the privacy policy to cover account data.
+         */
+        const val LOGIN_ENABLED = false
     }
 
     // Legal & External Policy Links
     object Legal {
-        const val PRIVACY_POLICY_URL = "https://example.com/privacy"
-        const val TERMS_OF_USE_URL = "https://example.com/terms"
+        // Hosted from docs/ by GitHub Pages (repo ZIUGOD/crypto-tracker, see DEVELOPMENT.md).
+        const val PRIVACY_POLICY_URL = "https://ziugod.github.io/crypto-tracker/privacy-policy/"
+        const val TERMS_OF_USE_URL = "https://ziugod.github.io/crypto-tracker/terms-of-use/"
     }
 
     // SharedPreferences Keys

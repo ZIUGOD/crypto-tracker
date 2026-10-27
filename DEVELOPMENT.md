@@ -35,7 +35,8 @@ ui/news/       NewsScreen (placeholder)
 | Pin/notification rules | `HomeViewModel` (`togglePinned`) and `PinnedCoinsStore.ensureDefaultSelection` |
 | UI text (any language) | `res/values/strings.xml` (English, default + fallback) and `res/values-<lang>/strings.xml` |
 | Number / currency formats | `format/CoinFormatters.kt` (take a `Locale`) |
-| Ad unit IDs | `AppConfig.Ads` (+ `APPLICATION_ID` in `AndroidManifest.xml`) |
+| Google sign-in on/off | `AppConfig.Account.LOGIN_ENABLED` (off: no badge, no Account section, only the legal links in Settings) |
+| Ad IDs (debug sample / release production) | `buildTypes` in `app/build.gradle.kts` (feeds the manifest and `AppConfig.Ads`) |
 
 ## Localization (English + Portuguese-BR)
 - English is the default language **and** the fallback: `res/values/strings.xml`. The first launch is always English (it does not follow the device language); the choice is stored by `LanguagePreferences` and applied by `AppLocale.wrap(context)` in `MainActivity.attachBaseContext`. Changing it in Settings recreates the Activity.
@@ -62,8 +63,8 @@ ui/news/       NewsScreen (placeholder)
 - Every new parser, formatter or ViewModel behavior ships with a unit test.
 
 ## Before release checklist
-- [ ] Replace AdMob test IDs (`AppConfig.Ads`, manifest `APPLICATION_ID`).
-- [ ] Replace `AppConfig.Legal` URLs (currently `example.com`; policy pages are in `docs/`).
+- [x] AdMob: production IDs are set per build type in `app/build.gradle.kts` (debug keeps the sample IDs).
+- [ ] Publish `docs/` on GitHub Pages: repo Settings > Pages > Deploy from a branch, branch `master`, folder `/docs` (URL `https://ziugod.github.io/crypto-tracker/`; it must match `AppConfig.Legal`; the repo must stay public). The pages in `docs/` (English and `docs/pt-br/`) are written for `AppConfig.Account.LOGIN_ENABLED = false`; if login is turned on, add the account data back to the privacy policy first. They have not had a legal review.
 - [ ] Verify the CoinCap fallback endpoint still exists (CoinCap v2 may be retired).
 - [ ] Move user-facing strings to `strings.xml` (needed for translation).
 - [ ] Visual pass on a real device: both themes, small screens, font scale 1.3x, Android 11 (no blur).

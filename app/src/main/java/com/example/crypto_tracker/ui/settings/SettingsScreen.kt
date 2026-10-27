@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.crypto_tracker.R
 import com.example.crypto_tracker.auth.GoogleSignInClient
+import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.AppLanguage
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.ui.components.GlassDefaults
@@ -47,8 +48,11 @@ fun SettingsScreen(
     val context = LocalContext.current
     val resources = LocalResources.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val loginEnabled = AppConfig.Account.LOGIN_ENABLED
     val webClientId = stringResource(R.string.google_web_client_id)
-    val googleSignIn = remember(context, webClientId) { GoogleSignInClient(context, webClientId) }
+    val googleSignIn = remember(context, webClientId, loginEnabled) {
+        if (loginEnabled) GoogleSignInClient(context, webClientId) else null
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -100,18 +104,22 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        AccountSection(
-            account = uiState.account,
-            privacyAccepted = uiState.privacyAccepted,
-            isSigningIn = uiState.isSigningIn,
-            canSignIn = uiState.canSignIn,
-            onPrivacyAcceptedChange = viewModel::setPrivacyAccepted,
-            onSignIn = { viewModel.signIn(googleSignIn) },
-            onSignOut = {
-                viewModel.signOut()
-                onSignedOut()
-            }
-        )
+        if (googleSignIn != null) {
+            AccountSection(
+                account = uiState.account,
+                privacyAccepted = uiState.privacyAccepted,
+                isSigningIn = uiState.isSigningIn,
+                canSignIn = uiState.canSignIn,
+                onPrivacyAcceptedChange = viewModel::setPrivacyAccepted,
+                onSignIn = { viewModel.signIn(googleSignIn) },
+                onSignOut = {
+                    viewModel.signOut()
+                    onSignedOut()
+                }
+            )
+        } else {
+            LegalSection()
+        }
 
         Spacer(modifier = Modifier.height(28.dp))
 

@@ -43,7 +43,10 @@ internal fun AccountSection(
     Spacer(modifier = Modifier.height(8.dp))
 
     when (account) {
-        is AccountState.SignedIn -> SignedInCard(account, onSignOut)
+        is AccountState.SignedIn -> {
+            SignedInCard(account, onSignOut)
+            LegalLinks()
+        }
         AccountState.SignedOut -> SignedOutCard(
             privacyAccepted = privacyAccepted,
             isSigningIn = isSigningIn,
@@ -147,8 +150,6 @@ private fun SignedOutCard(
 
 @Composable
 private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit) {
-    val uriHandler = LocalUriHandler.current
-
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         shape = GlassDefaults.InnerShape
@@ -167,17 +168,7 @@ private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Uni
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL) }) {
-                    Text(stringResource(R.string.privacy_policy))
-                }
-                TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL) }) {
-                    Text(stringResource(R.string.terms_of_use))
-                }
-            }
+            LegalLinks()
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = accepted, onCheckedChange = onAcceptedChange)
                 Text(
@@ -186,6 +177,31 @@ private fun PrivacyConsent(accepted: Boolean, onAcceptedChange: (Boolean) -> Uni
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
+        }
+    }
+}
+
+/** Legal block shown instead of the account section when sign-in is off ([AppConfig.Account.LOGIN_ENABLED]). */
+@Composable
+internal fun LegalSection() {
+    SectionTitle(stringResource(R.string.legal_title))
+    Spacer(modifier = Modifier.height(8.dp))
+    LegalLinks()
+}
+
+/** Links to the hosted Privacy Policy and Terms of Use (URLs in [AppConfig.Legal]). */
+@Composable
+private fun LegalLinks() {
+    val uriHandler = LocalUriHandler.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.PRIVACY_POLICY_URL) }) {
+            Text(stringResource(R.string.privacy_policy))
+        }
+        TextButton(onClick = { uriHandler.openUri(AppConfig.Legal.TERMS_OF_USE_URL) }) {
+            Text(stringResource(R.string.terms_of_use))
         }
     }
 }

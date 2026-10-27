@@ -16,10 +16,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cryptotracker">
 
-        <!-- Google AdMob Test App ID (Replace with real App ID before publishing) -->
+        <!-- AdMob App ID: sample ID in debug, production ID in release (see buildTypes in app/build.gradle.kts) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-        android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="${admobAppId}"/>
 
         <activity
             android:name=".MainActivity"

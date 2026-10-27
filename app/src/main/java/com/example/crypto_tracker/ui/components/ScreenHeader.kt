@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.crypto_tracker.config.AppConfig
 
 /**
  * Standardized Header component used across all app screens for uniform title height, padding, typography,
@@ -31,9 +32,11 @@ fun ScreenHeader(
             .fillMaxWidth()
             .padding(bottom = 16.dp)
     ) {
-        UserAccountHeader()
+        if (AppConfig.Account.LOGIN_ENABLED) {
+            UserAccountHeader()
 
-        Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+        }
 
         Text(
             text = title,

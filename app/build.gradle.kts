@@ -31,7 +31,15 @@ android {
     }
 
     buildTypes {
+        // AdMob: debug always uses Google's sample IDs so development never produces real impressions
+        // or clicks (policy violation); only release uses the production IDs.
+        debug {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+        }
         release {
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-9399548772812079~1855065116"
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-9399548772812079/3355763327\"")
             optimization {
                 enable = true
             }
@@ -51,6 +59,7 @@ android {
     buildFeatures {
         compose = true
         resValues = true
+        buildConfig = true
     }
 }
 

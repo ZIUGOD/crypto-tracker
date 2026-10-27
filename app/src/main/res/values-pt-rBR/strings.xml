@@ -87,6 +87,7 @@
     <string name="privacy_body">Usamos seu nome e e-mail apenas para autenticar sua conta e sincronizar suas preferências. Não vendemos seus dados pessoais.</string>
     <string name="privacy_policy">Política de Privacidade</string>
     <string name="terms_of_use">Termos de Uso</string>
+    <string name="legal_title">Legal</string>
     <string name="privacy_accept">Aceito a Política de Privacidade e os Termos de Uso.</string>
 
     <string name="toast_welcome">Boas-vindas, %1$s!</string>

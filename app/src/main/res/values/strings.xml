@@ -95,6 +95,7 @@
     <string name="privacy_body">We use your name and email only to authenticate your account and sync your preferences. We do not sell your personal data.</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="terms_of_use">Terms of Use</string>
+    <string name="legal_title">Legal</string>
     <string name="privacy_accept">I accept the Privacy Policy and Terms of Use.</string>
 
     <string name="toast_welcome">Welcome, %1$s!</string>
