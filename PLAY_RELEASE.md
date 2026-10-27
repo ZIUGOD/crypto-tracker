@@ -11,11 +11,35 @@
 | Páginas legais no GitHub Pages | No ar (HTTP 200): [Política](https://ziugod.github.io/crypto-tracker/privacy-policy/) · [Termos](https://ziugod.github.io/crypto-tracker/terms-of-use/) |
 | Login com Google | Desligado (`AppConfig.Account.LOGIN_ENABLED = false`) |
 | Provedores de preço | CoinGecko + plano B CoinPaprika, com proteção contra excesso de requisições |
-| Chave de assinatura | **Falta gerar** (passo 1) |
+| Chave de assinatura | Gerada; APK e AAB assinados gerados (versionCode 1) |
 | Teste do release em aparelho real | **Falta** (passo 4) |
 | Conta e ficha na Play Console | **Falta** (passos 5 a 7) |
 
-Os passos abaixo estão na ordem em que devem ser feitos.
+## Tarefas até a publicação (ordem)
+- [x] 1. Gerar a chave de upload e o `keystore.properties`; gerar APK e AAB assinados.
+- [ ] 1b. **Backup do `.jks` e das senhas.** Copie `C:\Users\caiqu\keys\crypto-tracker-upload.jks` para um pendrive ou nuvem privada, e guarde as senhas em um gerenciador de senhas. Nunca no GitHub.
+- [ ] 1c. **Testar o APK assinado no celular.** Ative *Configurações → Opções do desenvolvedor → Depuração USB*, conecte o cabo e, na pasta do projeto, rode `adb install -r app\build\outputs\apk\release\app-release.apk` (desinstale antes o app de debug, se houver). Siga o checklist do passo 4 abaixo. **Não clique nos anúncios.**
+- [x] 2. Conta de desenvolvedor na Play Console (taxa e verificação de identidade). Painel: https://play.google.com/console
+- [ ] 3. **AdMob, para receber o pagamento.** Entre em https://admob.google.com (mesma conta Google) e vá em *Pagamentos*: preencha endereço, dados fiscais e a forma de recebimento. A verificação de endereço (PIN por carta) pode ser pedida quando o saldo chegar a um valor mínimo; fique atento ao e-mail.
+- [ ] 3b. **AdMob, conferir os IDs.** Em https://admob.google.com → *Apps* → seu app → *Blocos de anúncios*, confira que o ID do app e o do banner são os mesmos que o build de release usa em `app/build.gradle.kts` (procure por `ADMOB`).
+- [ ] 4. **Play Console, criar o app.** Em https://play.google.com/console clique em *Criar app*: nome *Crypto Tracker*, idioma padrão *Inglês*, tipo *App*, *Sem custo*, aceite as declarações. Depois, em *Painel*, faça as tarefas que a Play Console listar:
+  - *Política de Privacidade*: `https://ziugod.github.io/crypto-tracker/privacy-policy/`
+  - *Anúncios*: **Sim, o app contém anúncios**.
+  - *Acesso ao app*: todas as funções disponíveis sem login.
+  - *Segurança dos dados*: use as respostas da seção 6 deste guia (conferindo o guia atual do AdMob).
+  - *Classificação de conteúdo*: responda o questionário (app informativo, sem conteúdo sensível).
+  - *Público-alvo*: 13+ (ou 18+), não é para crianças.
+  - *Categoria*: Finanças; e-mail de contato `caique.softwaredeveloper@gmail.com`.
+  - *Países*: Brasil.
+  - *Ficha principal*: textos de `PLAY_LISTING.md` (inglês) e, em *Gerenciar traduções*, adicione Português (Brasil). Imagens: `C:\Users\caiqu\Pictures\crypto-tracker-play\` (`icon-512.png`; `en\` e `pt-BR\` com `feature-graphic.png` e 3 capturas cada).
+- [ ] 4b. **Requisito de teste fechado.** No *Painel* da Play Console procure por *Requisitos de produção* (ou "Testar seu app"). Contas pessoais novas podem precisar de um teste fechado com testadores por alguns dias antes de liberar a produção. Se pedir, crie o teste fechado em *Testes → Teste fechado*, adicione os e-mails dos testadores (amigos e família, com Gmail) e peça que instalem pelo link de teste e mantenham o app instalado.
+- [ ] 5. **Enviar o AAB.** *Testes → Teste interno → Criar nova versão* (ou o teste fechado, se a conta exigir): envie `app\build\outputs\bundle\release\app-release.aab`, aceite o *Play App Signing* e adicione seu e-mail como testador. Instale pelo link e confira. Depois, *Produção → Criar nova versão*, escolha a mesma versão, escreva as notas e envie para análise.
+- [ ] 6. **Vincular ao AdMob (depois de publicado).** Em https://admob.google.com → *Apps* → *Adicionar app* → *Sim, já está publicado* → procure *Crypto Tracker* → selecione e conclua. Sem o vínculo o AdMob não identifica o app na loja.
+- [ ] 7. **Primeiros dias.** Em https://play.google.com/console acompanhe *Qualidade → Android vitals* (travamentos) e as avaliações. No AdMob, veja se as solicitações de anúncio e as impressões começaram a aparecer.
+
+Arquivos gerados: `app/build/outputs/apk/release/app-release.apk` (teste) e `app/build/outputs/bundle/release/app-release.aab` (envio).
+
+Os passos abaixo detalham a lista, na ordem em que devem ser feitos.
 
 ## 1. Chave de assinatura (uma vez só)
 O app usa o **Play App Signing**: você assina o envio com uma *chave de upload* e o Google guarda a chave final de distribuição.
