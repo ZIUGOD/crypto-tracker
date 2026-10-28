@@ -1,13 +1,13 @@
 # Crypto Tracker - Guia de publicação na Play Store
 
-Última revisão: 2026-10-27 (código em `master`, commit `3b4b321` ou posterior).
+Última revisão: 2026-10-28 (código em `master`, commit `3b4b321` ou posterior).
 
 ## Situação atual
 
 | Item | Estado |
 |---|---|
 | Código, testes (66) e lint (0 erros) | Pronto |
-| Build de release (R8 + IDs de produção do AdMob) | Compila; **ainda não testado em aparelho** |
+| Build de release (R8 + IDs de produção do AdMob) | Testado no emulador: o SDK pede o anúncio com os IDs reais e recebe "No fill" (esperado antes da publicação) |
 | Páginas legais no GitHub Pages | No ar (HTTP 200): [Política](https://ziugod.github.io/crypto-tracker/privacy-policy/) · [Termos](https://ziugod.github.io/crypto-tracker/terms-of-use/) |
 | Login com Google | Desligado (`AppConfig.Account.LOGIN_ENABLED = false`) |
 | Provedores de preço | CoinGecko + plano B CoinPaprika, com proteção contra excesso de requisições |
@@ -86,6 +86,8 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 - [ ] O banner de anúncio aparece. **Este build usa os IDs reais do AdMob: não clique nos seus próprios anúncios** (isso pode suspender a conta). Se o anúncio não aparecer logo na primeira vez, é normal: contas novas podem demorar horas para começar a receber anúncios.
 - [ ] Tela pequena e fonte grande (escala 1,3x): nada cortado.
 - [ ] Android 11 ou inferior (sem desfoque real): legível.
+
+**Banner não aparece e o log mostra `Unable to obtain a JavascriptEngine` (código 0)?** Quase sempre é DNS que bloqueia anúncios (DNS Privado com filtro, Pi-hole, roteador): `pagead2.googlesyndication.com` resolve para `127.0.0.1`. Troque o DNS Privado para *Automático* ou `dns.google` e teste de novo. `No fill` (código 3) significa que o AdMob recebeu o pedido mas não tinha anúncio, normal até a publicação e o vínculo do app.
 
 Para ver o app em ação sem gerar impressões reais, use o build de debug (`:app:installDebug`), que usa os anúncios de teste do Google.
 
