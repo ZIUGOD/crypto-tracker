@@ -62,6 +62,6 @@ class BaselineProfileGenerator {
     }
 
     private companion object {
-        const val TARGET_PACKAGE = "com.cryptotracker.app"
+        const val TARGET_PACKAGE = "com.cryptotrackerapp"
     }
 }

@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         // Production package. It must be registered in the Android OAuth client.
-        applicationId = "com.cryptotracker.app"
+        applicationId = "com.cryptotrackerapp"
         minSdk = 28
         targetSdk = 37
         versionCode = 1
