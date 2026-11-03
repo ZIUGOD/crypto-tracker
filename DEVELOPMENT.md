@@ -27,7 +27,7 @@ ui/news/       NewsScreen (placeholder)
 |---|---|
 | A number, flag, URL, ID, interval, limit | `config/AppConfig.kt` |
 | Brand colors (light/dark) | `ui/theme/Color.kt` -> mapped in `ui/theme/Theme.kt` |
-| Visual themes (look and feel) | `AppTheme` (`data/preferences/AppTheme.kt`): slot 1 `LITE` reserved for older phones (not built), slot 2 `GLASS` is the current one. Palette: `colorSchemeFor` in `Theme.kt`; effects: `ThemeStyle` / `LocalThemeStyle` in `ui/theme/ThemeStyle.kt`. To add one, see the KDoc of `AppTheme` |
+| Visual themes (look and feel) | `AppTheme` (`data/preferences/AppTheme.kt`): slot 1 `LITE` is the default (flat, no blur/texture/gradients/animation), slot 2 `GLASS` is the richer look. Palette: `colorSchemeFor` in `Theme.kt`; effects: `ThemeStyle` / `LocalThemeStyle` in `ui/theme/ThemeStyle.kt`; picker: `AppThemeSection`. To add one, see the KDoc of `AppTheme` |
 | Type scale / monospace figures | `ui/theme/Type.kt` (`FinancialText`) |
 | Glass look (radii, blur, opacity, spacing) | `GlassDefaults` in `ui/components/Glass.kt` |
 | Background texture | `GlassBackground` in `ui/components/Glass.kt` (toggle: `AppConfig.Design`) |

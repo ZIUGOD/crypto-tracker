@@ -30,6 +30,14 @@ val LightGoldToken = Color(0xFFA87516)
 val LightCyanToken = Color(0xFF087EAA)
 val LightErrorToken = Color(0xFFC6283D)
 
+// --- Lite theme: flat surfaces need a clearer step between background, card and border ---
+val LiteDarkBgToken = Color(0xFF0B0F0D)
+val LiteDarkSurfaceToken = Color(0xFF161E1A)
+val LiteDarkBorderToken = Color(0xFF2C3B32)
+val LiteLightBgToken = Color(0xFFF1F4F0)
+val LiteLightSurfaceToken = Color(0xFFFFFFFF)
+val LiteLightBorderToken = Color(0xFFCFD9D0)
+
 // --- Derived container roles (dialogs, chips, status pills) ---
 val DarkPrimaryContainerToken = Color(0xFF0F3A24)
 val DarkOnPrimaryContainerToken = Color(0xFFB8FFD6)

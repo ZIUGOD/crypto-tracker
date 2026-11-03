@@ -69,7 +69,7 @@ object GlassDefaults {
     val TintDark = 0.58f to 0.74f
     val TintLight = 0.62f to 0.78f
     // Opacity when no backdrop blur is available (Android < 12 or no source): [normal, strong]
-    val FallbackOpacity = 0.88f to 0.94f
+    val FallbackOpacity = 0.84f to 0.93f
 
     // Spacing
     val ScreenPadding = 16.dp
@@ -98,6 +98,10 @@ fun Modifier.glass(
     // Tint comes from the theme surface token with enough opacity to keep text at AA contrast.
     val surface = MaterialTheme.colorScheme.surface
     val outline = MaterialTheme.colorScheme.outline
+    if (themeStyle.opaqueSurfaces) {
+        // Lite: nothing to remember or blend - one opaque fill and a one-colour border.
+        return this.clip(shape).background(surface).border(GlassDefaults.BorderWidth, outline, shape)
+    }
     val tintPair = if (dark) GlassDefaults.TintDark else GlassDefaults.TintLight
     val tint = surface.copy(alpha = if (strong) tintPair.second else tintPair.first)
     val fallbackPair = GlassDefaults.FallbackOpacity
@@ -115,14 +119,14 @@ fun Modifier.glass(
         )
     }
 
-    // Restrained specular highlight on the top-left corner only.
-    val sheen = remember(dark) {
+    // Diagonal light across the whole card: a white sheen fading out from the top-left and a faint
+    // accent glow in the opposite corner. A single gradient, so it costs almost nothing to draw.
+    val accent = MaterialTheme.colorScheme.primary
+    val sheen = remember(dark, accent) {
         Brush.linearGradient(
-            colors = listOf(
-                Color.White.copy(alpha = if (dark) 0.07f else 0.40f),
-                Color.Transparent
-            ),
-            end = Offset(400f, 400f)
+            0f to Color.White.copy(alpha = if (dark) 0.09f else 0.50f),
+            0.45f to Color.Transparent,
+            1f to accent.copy(alpha = if (dark) 0.08f else 0.09f)
         )
     }
     // Subtle border: bright hint at the top-left fading into the theme border token.
@@ -192,7 +196,8 @@ fun glassInnerPanelColor(): Color =
 fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val hazeState = rememberHazeState()
     val dark = isDarkGlass()
-    val textureEnabled = LocalThemeStyle.current.backgroundTexture
+    val themeStyle = LocalThemeStyle.current
+    val textureEnabled = themeStyle.backgroundTexture
 
     // Everything derives from theme tokens: green (primary), cyan (tertiary), gold (secondary).
     val scheme = MaterialTheme.colorScheme
@@ -208,11 +213,15 @@ fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .hazeSource(hazeState)
+                // Only a blur needs the scene registered as its source.
+                .then(if (themeStyle.backdropBlur || themeStyle.listBlur) Modifier.hazeSource(hazeState) else Modifier)
                 // Rasterised once into a GPU texture and re-composited as a single quad: the static scene
                 // (ribbons, dots, grain, vignette) is no longer re-drawn on every frame of a scroll/animation.
-                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                .background(Brush.verticalGradient(listOf(baseTop, baseBottom)))
+                .then(if (textureEnabled) Modifier.graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen) else Modifier)
+                .then(
+                    if (themeStyle.backgroundGradient) Modifier.background(Brush.verticalGradient(listOf(baseTop, baseBottom)))
+                    else Modifier.background(baseTop)
+                )
                 .drawWithCache {
                     if (!textureEnabled) return@drawWithCache onDrawBehind { }
                     val w = size.width
@@ -278,7 +287,18 @@ fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
                         radius = maxOf(w, h) * 0.85f
                     )
 
+                    // Large soft colour glows (the cached layer makes them free after the first frame).
+                    val glowAlpha = if (dark) 0.17f else 0.26f
+                    val glows = listOf(
+                        Triple(Offset(w * 0.05f, h * 0.10f), w * 1.0f, ribbonA),
+                        Triple(Offset(w * 0.98f, h * 0.45f), w * 0.9f, ribbonB),
+                        Triple(Offset(w * 0.15f, h * 0.88f), w * 1.0f, ribbonC)
+                    ).map { (center, radius, color) ->
+                        Brush.radialGradient(listOf(color.copy(alpha = glowAlpha), Color.Transparent), center, radius)
+                    }
+
                     onDrawBehind {
+                        glows.forEach { drawRect(brush = it) }
                         bands.forEach { (parts, color) ->
                             val (fill, line, brush) = parts
                             drawPath(fill, brush)

@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.draw.rotate
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -16,6 +17,8 @@ import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -85,6 +88,7 @@ fun CryptoRankCard(
     onToggleExpand: () -> Unit,
     onToggleNotification: () -> Unit
 ) {
+    val richMotion = LocalThemeStyle.current.richMotion
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         strong = isExpanded,
@@ -96,8 +100,10 @@ fun CryptoRankCard(
         // The card grows/shrinks with the details (no separate animateContentSize, which would fight it).
         AnimatedVisibility(
             visible = isExpanded,
-            enter = expandVertically(animationSpec = ExpandSizeSpec) + fadeIn(animationSpec = ExpandFadeSpec),
-            exit = shrinkVertically(animationSpec = CollapseSizeSpec) + fadeOut(animationSpec = CollapseFadeSpec)
+            enter = if (richMotion) expandVertically(animationSpec = ExpandSizeSpec) + fadeIn(animationSpec = ExpandFadeSpec)
+            else EnterTransition.None,
+            exit = if (richMotion) shrinkVertically(animationSpec = CollapseSizeSpec) + fadeOut(animationSpec = CollapseFadeSpec)
+            else ExitTransition.None
         ) {
             Column { CardDetails(coin) }
         }
@@ -210,12 +216,13 @@ private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean, modifier: Modifier 
             )
             Spacer(modifier = Modifier.width(4.dp))
             // One arrow that turns over, in step with the card, instead of swapping two icons.
+            val richMotion = LocalThemeStyle.current.richMotion
             val arrowRotation by animateFloatAsState(
                 targetValue = if (isExpanded) 180f else 0f,
-                animationSpec = tween(
+                animationSpec = if (richMotion) tween(
                     if (isExpanded) AppConfig.Design.CARD_EXPAND_DURATION_MS else AppConfig.Design.CARD_COLLAPSE_DURATION_MS,
                     easing = FastOutSlowInEasing
-                ),
+                ) else snap(),
                 label = "arrowRotation"
             )
             Icon(
@@ -239,20 +246,27 @@ private fun CoinTitle(coin: CryptoCoin, isExpanded: Boolean, modifier: Modifier 
 private fun PriceColumn(coin: CryptoCoin) {
     val locale = appLocale()
     Column(horizontalAlignment = Alignment.End) {
-        AnimatedContent(
-            targetState = coin.currentPriceUsd,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "priceAnimation"
-        ) { price ->
-            Text(
-                text = formatCurrencyUsd(price, locale),
-                style = FinancialText.Price,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        if (LocalThemeStyle.current.richMotion) {
+            AnimatedContent(
+                targetState = coin.currentPriceUsd,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "priceAnimation"
+            ) { price -> PriceText(price, locale) }
+        } else {
+            PriceText(coin.currentPriceUsd, locale)
         }
         Spacer(modifier = Modifier.height(2.dp))
         ChangePill(coin.priceChangePercentage24h, locale)
     }
+}
+
+@Composable
+private fun PriceText(price: Double, locale: Locale) {
+    Text(
+        text = formatCurrencyUsd(price, locale),
+        style = FinancialText.Price,
+        color = MaterialTheme.colorScheme.onSurface
+    )
 }
 
 /** 24h change. Direction is conveyed by arrow + sign, never by colour alone. */

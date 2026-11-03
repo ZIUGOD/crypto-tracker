@@ -79,6 +79,12 @@
     <string name="theme_light_subtitle">Always use light appearance</string>
     <string name="theme_dark_title">Dark Theme</string>
     <string name="theme_dark_subtitle">Always use dark appearance</string>
+    <string name="app_theme_title">Visual Style</string>
+    <string name="app_theme_description">Choose how the app looks. Lite is lighter on older phones</string>
+    <string name="app_theme_lite_title">Lite</string>
+    <string name="app_theme_lite_subtitle">Flat and fast, easy on the processor and battery. Best for older phones</string>
+    <string name="app_theme_glass_title">Glass</string>
+    <string name="app_theme_glass_subtitle">Frosted-glass cards and a textured background</string>
 
     <string name="language_title">Language</string>
     <string name="language_description">Choose the language used across the app</string>

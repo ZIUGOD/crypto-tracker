@@ -72,6 +72,12 @@
     <string name="theme_light_subtitle">Sempre usar a aparência clara</string>
     <string name="theme_dark_title">Tema Escuro</string>
     <string name="theme_dark_subtitle">Sempre usar a aparência escura</string>
+    <string name="app_theme_title">Estilo visual</string>
+    <string name="app_theme_description">Escolha a aparência do app. O Lite é mais leve em celulares antigos</string>
+    <string name="app_theme_lite_title">Lite</string>
+    <string name="app_theme_lite_subtitle">Plano e rápido, poupa processador e bateria. Ideal para celulares antigos</string>
+    <string name="app_theme_glass_title">Vidro</string>
+    <string name="app_theme_glass_subtitle">Cards de vidro fosco e fundo texturizado</string>
 
     <string name="language_title">Idioma</string>
     <string name="language_description">Escolha o idioma usado em todo o app</string>

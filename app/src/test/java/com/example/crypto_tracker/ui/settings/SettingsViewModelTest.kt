@@ -28,11 +28,11 @@ class SettingsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
 
-    private class FakeThemeStore(var mode: ThemeMode = ThemeMode.SYSTEM) : ThemeStore {
+    private class FakeThemeStore(var mode: ThemeMode = ThemeMode.SYSTEM, var storedTheme: AppTheme = AppTheme.Default) : ThemeStore {
         override fun getThemeMode() = mode
         override fun setThemeMode(mode: ThemeMode) { this.mode = mode }
-        override fun getAppTheme() = AppTheme.Default
-        override fun setAppTheme(theme: AppTheme) {}
+        override fun getAppTheme() = storedTheme
+        override fun setAppTheme(theme: AppTheme) { storedTheme = theme }
     }
 
     private class FakeSessionStore(
@@ -75,6 +75,16 @@ class SettingsViewModelTest {
         val vm = viewModel(FakeSessionStore(email = "a@b.com", name = null))
 
         assertEquals(AccountState.SignedIn("a", "a@b.com"), vm.uiState.value.account)
+    }
+
+    @Test
+    fun setAppTheme_persistsAndUpdatesState() {
+        val vm = viewModel()
+
+        vm.setAppTheme(AppTheme.LITE)
+
+        assertEquals(AppTheme.LITE, themeStore.storedTheme)
+        assertEquals(AppTheme.LITE, vm.uiState.value.appTheme)
     }
 
     @Test

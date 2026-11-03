@@ -34,6 +34,7 @@ import androidx.work.WorkManager
 import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.AppLanguage
 import com.example.crypto_tracker.data.preferences.AppLocale
+import com.example.crypto_tracker.data.preferences.AppTheme
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemePreferences
 import com.example.crypto_tracker.notification.CryptoPriceWorker
@@ -116,14 +117,15 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
 
-            // Visual theme (look and feel). Only one is available today; a future picker will update this state.
-            val appTheme by remember { mutableStateOf(themePrefs.getAppTheme()) }
+            // Visual theme (look and feel): Lite or Glass, picked in Settings.
+            var appTheme by remember { mutableStateOf(themePrefs.getAppTheme()) }
 
             CryptotrackerTheme(darkTheme = darkTheme, appTheme = appTheme) {
                 CryptotrackerApp(
                     onThemeChanged = { newMode ->
                         themeMode = newMode
                     },
+                    onAppThemeChanged = { appTheme = it },
                     // Strings are resolved when the Activity is created, so recreate it to apply the new language.
                     onLanguageChanged = { recreate() }
                 )
@@ -142,6 +144,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CryptotrackerApp(
     onThemeChanged: (ThemeMode) -> Unit = {},
+    onAppThemeChanged: (AppTheme) -> Unit = {},
     onLanguageChanged: (AppLanguage) -> Unit = {}
 ) {
     // Retains selected destination state across configuration changes
@@ -176,6 +179,7 @@ fun CryptotrackerApp(
                 AppDestinations.SETTINGS -> SettingsScreen(
                     modifier = Modifier.padding(innerPadding),
                     onThemeChanged = onThemeChanged,
+                    onAppThemeChanged = onAppThemeChanged,
                     onLanguageChanged = onLanguageChanged
                 )
             }

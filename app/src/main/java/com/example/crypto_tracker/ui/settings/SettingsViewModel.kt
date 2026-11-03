@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.crypto_tracker.auth.GoogleSignIn
 import com.example.crypto_tracker.auth.SignInResult
 import com.example.crypto_tracker.data.preferences.AppLanguage
+import com.example.crypto_tracker.data.preferences.AppTheme
 import com.example.crypto_tracker.data.preferences.LanguagePreferences
 import com.example.crypto_tracker.data.preferences.LanguageStore
 import com.example.crypto_tracker.data.preferences.SessionManager
@@ -32,6 +33,7 @@ sealed interface AccountState {
 
 data class SettingsUiState(
     val themeMode: ThemeMode,
+    val appTheme: AppTheme,
     val language: AppLanguage,
     val account: AccountState,
     val privacyAccepted: Boolean = false,
@@ -57,6 +59,7 @@ class SettingsViewModel(
     private val _uiState = MutableStateFlow(
         SettingsUiState(
             themeMode = themeStore.getThemeMode(),
+            appTheme = themeStore.getAppTheme(),
             language = languageStore.getLanguage(),
             account = loadAccount()
         )
@@ -69,6 +72,11 @@ class SettingsViewModel(
     fun setThemeMode(mode: ThemeMode) {
         themeStore.setThemeMode(mode)
         _uiState.update { it.copy(themeMode = mode) }
+    }
+
+    fun setAppTheme(theme: AppTheme) {
+        themeStore.setAppTheme(theme)
+        _uiState.update { it.copy(appTheme = theme) }
     }
 
     fun setLanguage(language: AppLanguage) {

@@ -75,6 +75,31 @@ private val GlassLightColorScheme = lightColorScheme(
     onErrorContainer = LightOnErrorContainerToken
 )
 
+/** Lite: the glass palette with flat, clearly separated surfaces (no gradient or translucency to lean on). */
+private val LiteDarkColorScheme = GlassDarkColorScheme.copy(
+    background = LiteDarkBgToken,
+    surface = LiteDarkSurfaceToken,
+    surfaceVariant = LiteDarkSurfaceToken,
+    surfaceContainerLow = LiteDarkSurfaceToken,
+    surfaceContainer = LiteDarkSurfaceToken,
+    surfaceContainerHigh = LiteDarkSurfaceToken,
+    surfaceContainerHighest = LiteDarkSurfaceToken,
+    outline = LiteDarkBorderToken,
+    outlineVariant = LiteDarkBorderToken
+)
+
+private val LiteLightColorScheme = GlassLightColorScheme.copy(
+    background = LiteLightBgToken,
+    surface = LiteLightSurfaceToken,
+    surfaceVariant = LiteLightSurfaceToken,
+    surfaceContainerLow = LiteLightSurfaceToken,
+    surfaceContainer = LiteLightSurfaceToken,
+    surfaceContainerHigh = LiteLightSurfaceToken,
+    surfaceContainerHighest = LiteLightSurfaceToken,
+    outline = LiteLightBorderToken,
+    outlineVariant = LiteLightBorderToken
+)
+
 /** Shape scale shared by Material components (buttons, dialogs, inputs) and glass surfaces. */
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
@@ -84,9 +109,10 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(28.dp)
 )
 
-/** Colour scheme of [appTheme] in the requested brightness. [AppTheme.LITE] will get its own palettes. */
+/** Colour scheme of [appTheme] in the requested brightness. */
 private fun colorSchemeFor(appTheme: AppTheme, darkTheme: Boolean): ColorScheme = when (appTheme) {
-    AppTheme.LITE, AppTheme.GLASS -> if (darkTheme) GlassDarkColorScheme else GlassLightColorScheme
+    AppTheme.LITE -> if (darkTheme) LiteDarkColorScheme else LiteLightColorScheme
+    AppTheme.GLASS -> if (darkTheme) GlassDarkColorScheme else GlassLightColorScheme
 }
 
 /**

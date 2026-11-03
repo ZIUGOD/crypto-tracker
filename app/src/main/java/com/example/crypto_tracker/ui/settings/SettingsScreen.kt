@@ -25,6 +25,7 @@ import com.example.crypto_tracker.R
 import com.example.crypto_tracker.auth.GoogleSignInClient
 import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.preferences.AppLanguage
+import com.example.crypto_tracker.data.preferences.AppTheme
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.ui.components.GlassDefaults
 import com.example.crypto_tracker.ui.components.ScreenHeader
@@ -34,6 +35,7 @@ import com.example.crypto_tracker.ui.components.ScreenHeader
  * Stateful entry point; each section is a stateless composable in its own file.
  *
  * @param onThemeChanged Lets the activity re-theme immediately when the mode changes.
+ * @param onAppThemeChanged Same, when the visual theme (Lite/Glass) changes.
  * @param onLanguageChanged Lets the activity reload its resources when the language changes.
  * @param onSignedOut Invoked after the user signs out.
  */
@@ -41,6 +43,7 @@ import com.example.crypto_tracker.ui.components.ScreenHeader
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     onThemeChanged: (ThemeMode) -> Unit,
+    onAppThemeChanged: (AppTheme) -> Unit = {},
     onLanguageChanged: (AppLanguage) -> Unit = {},
     onSignedOut: () -> Unit = {},
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
@@ -81,6 +84,16 @@ fun SettingsScreen(
             title = stringResource(R.string.settings_title),
             subtitle = stringResource(R.string.settings_subtitle)
         )
+
+        AppThemeSection(
+            selected = uiState.appTheme,
+            onSelected = { theme ->
+                viewModel.setAppTheme(theme)
+                onAppThemeChanged(theme)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(28.dp))
 
         ThemeSection(
             selected = uiState.themeMode,

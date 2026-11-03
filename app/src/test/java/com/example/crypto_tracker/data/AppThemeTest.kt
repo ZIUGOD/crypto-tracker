@@ -2,27 +2,26 @@ package com.example.crypto_tracker.data
 
 import com.example.crypto_tracker.data.preferences.AppTheme
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class AppThemeTest {
     @Test
-    fun theLiteSlotComesFirstAndTheCurrentThemeIsTheSecondOption() {
+    fun liteIsTheFirstOptionAndGlassTheSecond() {
         assertEquals(listOf(AppTheme.LITE, AppTheme.GLASS), AppTheme.entries)
         assertEquals(1, AppTheme.GLASS.ordinal)
+        assertEquals(AppTheme.entries, AppTheme.selectable)
     }
 
     @Test
-    fun onlyBuiltThemesAreSelectable() {
-        assertFalse(AppTheme.LITE.available)
-        assertEquals(listOf(AppTheme.GLASS), AppTheme.selectable)
+    fun liteIsTheDefault() {
+        assertEquals(AppTheme.LITE, AppTheme.Default)
+        assertEquals(AppTheme.LITE, AppTheme.fromStored(null))
     }
 
     @Test
-    fun storedValuesFallBackToTheDefault() {
-        assertEquals(AppTheme.GLASS, AppTheme.fromStored(null))
-        assertEquals(AppTheme.GLASS, AppTheme.fromStored("REMOVED_THEME"))
-        assertEquals(AppTheme.GLASS, AppTheme.fromStored("LITE")) // reserved, not built yet
+    fun storedChoiceIsKeptAndUnknownValuesFallBackToLite() {
         assertEquals(AppTheme.GLASS, AppTheme.fromStored("GLASS"))
+        assertEquals(AppTheme.LITE, AppTheme.fromStored("LITE"))
+        assertEquals(AppTheme.LITE, AppTheme.fromStored("REMOVED_THEME"))
     }
 }
