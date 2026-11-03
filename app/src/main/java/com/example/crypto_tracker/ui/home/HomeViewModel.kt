@@ -20,7 +20,6 @@ import com.example.crypto_tracker.notification.CryptoNotificationManager
 import com.example.crypto_tracker.notification.NotificationPreferences
 import com.example.crypto_tracker.notification.PinnedCoinsStore
 import com.example.crypto_tracker.notification.PriceNotifier
-import com.example.crypto_tracker.notification.ensureDefaultSelection
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -165,7 +164,6 @@ class HomeViewModel(
 
     private fun onMarketDataLoaded(coins: List<CryptoCoin>) {
         _uiState.update { HomeUiState.Success(coins, currentTimeLabel()) }
-        pinTopCoinOnFirstLaunch(coins)
         notifier.showPortfolioNotification(coins, _pinnedCoinIds.value)
     }
 
@@ -174,11 +172,6 @@ class HomeViewModel(
         if (_uiState.value !is HomeUiState.Success) {
             _uiState.update { HomeUiState.Error(error.toHomeError()) }
         }
-    }
-
-    private fun pinTopCoinOnFirstLaunch(coins: List<CryptoCoin>) {
-        if (coins.isEmpty()) return
-        _pinnedCoinIds.value = pinnedStore.ensureDefaultSelection(coins)
     }
 
     private fun currentTimeLabel(): String = timeFormat.format(Date())

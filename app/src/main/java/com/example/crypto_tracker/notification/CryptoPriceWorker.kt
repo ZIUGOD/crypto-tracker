@@ -26,7 +26,7 @@ class CryptoPriceWorker(
         repository.fetchTopCryptos().fold(
             onSuccess = { coins ->
                 if (coins.isNotEmpty()) {
-                    notifier.showPortfolioNotification(coins, pinnedStore.ensureDefaultSelection(coins))
+                    notifier.showPortfolioNotification(coins, pinnedStore.getSelectedCoinIds())
                 }
                 Result.success()
             },

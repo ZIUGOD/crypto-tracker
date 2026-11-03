@@ -7,23 +7,11 @@ import com.example.crypto_tracker.data.model.CryptoCoin
  * Lets ViewModels depend on an abstraction instead of SharedPreferences.
  */
 interface PinnedCoinsStore {
-    /** Pure read: never writes. Empty until the first selection exists. */
+    /** Pure read: never writes. Empty until the user pins a coin (nothing is pinned by default). */
     fun getSelectedCoinIds(): Set<String>
 
     /** Stores [coinIds], capped at the configured maximum. */
     fun setSelectedCoinIds(coinIds: Set<String>)
-
-    /** On first launch pins [top1CoinId]; afterwards returns the stored selection untouched. */
-    fun ensureDefaultSelectionFromTop1(top1CoinId: String): Set<String>
-}
-
-/**
- * Pins the #1 ranked coin (or the first listed one) on first launch and returns the current
- * selection. Shared by the foreground ViewModel and the background worker.
- */
-fun PinnedCoinsStore.ensureDefaultSelection(coins: List<CryptoCoin>): Set<String> {
-    val topCoin = coins.firstOrNull { it.rank == 1 } ?: coins.firstOrNull() ?: return getSelectedCoinIds()
-    return ensureDefaultSelectionFromTop1(topCoin.id)
 }
 
 /** Presentation contract for live-price notifications. */

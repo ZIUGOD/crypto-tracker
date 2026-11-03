@@ -32,7 +32,7 @@ ui/news/       NewsScreen (placeholder)
 | Background texture | `GlassBackground` in `ui/components/Glass.kt` (toggle: `AppConfig.Design`) |
 | Provider JSON mapping | `data/repository/CoinParser.kt` (pure, unit-tested) |
 | Coin blurbs | `data/repository/CoinDescriptions.kt` |
-| Pin/notification rules | `HomeViewModel` (`togglePinned`) and `PinnedCoinsStore.ensureDefaultSelection` |
+| Pin/notification rules | `HomeViewModel` (`togglePinned`); nothing is pinned until the user chooses (`PinnedCoinsStore`) |
 | UI text (any language) | `res/values/strings.xml` (English, default + fallback) and `res/values-<lang>/strings.xml` |
 | Number / currency formats | `format/CoinFormatters.kt` (take a `Locale`) |
 | Google sign-in on/off | `AppConfig.Account.LOGIN_ENABLED` (off: no badge, no Account section, only the legal links in Settings) |

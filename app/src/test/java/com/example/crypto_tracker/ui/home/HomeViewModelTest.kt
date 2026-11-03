@@ -39,16 +39,11 @@ class HomeViewModelTest {
         }
     }
 
-    private class FakeStore(initial: Set<String> = emptySet(), private var initialized: Boolean = false) : PinnedCoinsStore {
+    private class FakeStore(initial: Set<String> = emptySet()) : PinnedCoinsStore {
         private var ids = initial
         override fun getSelectedCoinIds() = ids
         override fun setSelectedCoinIds(coinIds: Set<String>) {
             ids = coinIds
-            initialized = true
-        }
-        override fun ensureDefaultSelectionFromTop1(top1CoinId: String): Set<String> {
-            if (!initialized) setSelectedCoinIds(setOf(top1CoinId))
-            return ids
         }
     }
 
@@ -134,17 +129,20 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun pinsTheTopRankedCoinOnFirstLaunch() = runTest(dispatcher) {
-        val vm = viewModel(store = FakeStore())
+    fun pinsNothingOnFirstLaunch() = runTest(dispatcher) {
+        val store = FakeStore()
+        val vm = viewModel(store = store)
         vm.settle()
 
-        assertEquals(setOf("coin1"), vm.pinnedCoinIds.value)
+        assertEquals(emptySet<String>(), vm.pinnedCoinIds.value)
+        assertEquals(emptySet<String>(), store.getSelectedCoinIds())
+        assertEquals(listOf(emptySet<String>()), notifier.shown)
         vm.viewModelScope.cancel()
     }
 
     @Test
     fun keepsTheUsersSelectionAfterFirstLaunch() = runTest(dispatcher) {
-        val vm = viewModel(store = FakeStore(initial = setOf("coin5"), initialized = true))
+        val vm = viewModel(store = FakeStore(initial = setOf("coin5")))
         vm.settle()
 
         assertEquals(setOf("coin5"), vm.pinnedCoinIds.value)
@@ -153,7 +151,7 @@ class HomeViewModelTest {
 
     @Test
     fun togglePinned_addsAndRemoves() = runTest(dispatcher) {
-        val store = FakeStore(initial = setOf("coin1"), initialized = true)
+        val store = FakeStore(initial = setOf("coin1"))
         val vm = viewModel(store = store)
         vm.settle()
 
@@ -167,7 +165,7 @@ class HomeViewModelTest {
 
     @Test
     fun togglePinned_refreshesNotifications() = runTest(dispatcher) {
-        val vm = viewModel(store = FakeStore(setOf("coin1"), initialized = true))
+        val vm = viewModel(store = FakeStore(setOf("coin1")))
         vm.settle()
         notifier.shown.clear()
 
@@ -181,7 +179,7 @@ class HomeViewModelTest {
     fun togglePinned_rejectsBeyondTheLimitAndEmitsEvent() = runTest(dispatcher) {
         val max = AppConfig.Notifications.MAX_NOTIFIED_COINS
         val full = coins.take(max).map { it.id }.toSet()
-        val vm = viewModel(store = FakeStore(initial = full, initialized = true))
+        val vm = viewModel(store = FakeStore(initial = full))
         vm.settle()
 
         var event: HomeEvent? = null
