@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 import com.example.crypto_tracker.config.AppConfig
+import com.example.crypto_tracker.ui.theme.LocalThemeStyle
 import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -90,7 +91,8 @@ fun Modifier.glass(
     blur: Boolean = true
 ): Modifier {
     val hazeState = LocalHazeState.current
-    val blurAllowed = blur && rememberBlurAllowed()
+    val themeStyle = LocalThemeStyle.current
+    val blurAllowed = blur && rememberBlurAllowed(themeStyle.backdropBlur)
     val dark = isDarkGlass()
 
     // Tint comes from the theme surface token with enough opacity to keep text at AA contrast.
@@ -142,16 +144,16 @@ fun Modifier.glass(
             }
             else Modifier.background(fallback)
         )
-        .background(sheen)
+        .then(if (themeStyle.sheen) Modifier.background(sheen) else Modifier)
         .border(width = GlassDefaults.BorderWidth, brush = edge, shape = shape)
 }
 
 /** Global blur switches: the config flag and, optionally, a low-RAM device check (read once). */
 @Composable
-private fun rememberBlurAllowed(): Boolean {
+private fun rememberBlurAllowed(themeBlur: Boolean): Boolean {
     val context = LocalContext.current
-    return remember(context) {
-        AppConfig.Design.GLASS_BACKDROP_BLUR_ENABLED &&
+    return remember(context, themeBlur) {
+        themeBlur &&
             !(AppConfig.Design.GLASS_BLUR_DISABLED_ON_LOW_RAM &&
                 context.getSystemService(ActivityManager::class.java)?.isLowRamDevice == true)
     }
@@ -190,6 +192,7 @@ fun glassInnerPanelColor(): Color =
 fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val hazeState = rememberHazeState()
     val dark = isDarkGlass()
+    val textureEnabled = LocalThemeStyle.current.backgroundTexture
 
     // Everything derives from theme tokens: green (primary), cyan (tertiary), gold (secondary).
     val scheme = MaterialTheme.colorScheme
@@ -211,7 +214,7 @@ fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
                 .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                 .background(Brush.verticalGradient(listOf(baseTop, baseBottom)))
                 .drawWithCache {
-                    if (!AppConfig.Design.BACKGROUND_TEXTURE_ENABLED) return@drawWithCache onDrawBehind { }
+                    if (!textureEnabled) return@drawWithCache onDrawBehind { }
                     val w = size.width
                     val h = size.height
 

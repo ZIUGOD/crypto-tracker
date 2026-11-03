@@ -6,6 +6,7 @@ import com.example.crypto_tracker.auth.SignInResult
 import com.example.crypto_tracker.data.preferences.AppLanguage
 import com.example.crypto_tracker.data.preferences.LanguageStore
 import com.example.crypto_tracker.data.preferences.SessionStore
+import com.example.crypto_tracker.data.preferences.AppTheme
 import com.example.crypto_tracker.data.preferences.ThemeMode
 import com.example.crypto_tracker.data.preferences.ThemeStore
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,8 @@ class SettingsViewModelTest {
     private class FakeThemeStore(var mode: ThemeMode = ThemeMode.SYSTEM) : ThemeStore {
         override fun getThemeMode() = mode
         override fun setThemeMode(mode: ThemeMode) { this.mode = mode }
+        override fun getAppTheme() = AppTheme.Default
+        override fun setAppTheme(theme: AppTheme) {}
     }
 
     private class FakeSessionStore(

@@ -19,6 +19,10 @@ enum class ThemeMode {
 interface ThemeStore {
     fun getThemeMode(): ThemeMode
     fun setThemeMode(mode: ThemeMode)
+
+    /** The visual theme (look and feel); always an available one. */
+    fun getAppTheme(): AppTheme
+    fun setAppTheme(theme: AppTheme)
 }
 
 class ThemePreferences(context: Context) : ThemeStore {
@@ -26,6 +30,7 @@ class ThemePreferences(context: Context) : ThemeStore {
 
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_APP_THEME = "app_theme"
     }
 
     /**
@@ -41,5 +46,11 @@ class ThemePreferences(context: Context) : ThemeStore {
      */
     override fun setThemeMode(mode: ThemeMode) {
         prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+    }
+
+    override fun getAppTheme(): AppTheme = AppTheme.fromStored(prefs.getString(KEY_APP_THEME, null))
+
+    override fun setAppTheme(theme: AppTheme) {
+        prefs.edit().putString(KEY_APP_THEME, theme.name).apply()
     }
 }

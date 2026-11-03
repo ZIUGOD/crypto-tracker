@@ -55,6 +55,7 @@ import com.example.crypto_tracker.config.AppConfig
 import com.example.crypto_tracker.data.model.CryptoCoin
 import com.example.crypto_tracker.ui.components.GlassCard
 import com.example.crypto_tracker.ui.theme.FinancialText
+import com.example.crypto_tracker.ui.theme.LocalThemeStyle
 import java.util.Locale
 
 // Smooth, unhurried curves; durations come from AppConfig.Design. The fade trails the size on the way
@@ -87,7 +88,7 @@ fun CryptoRankCard(
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         strong = isExpanded,
-        blur = AppConfig.Design.GLASS_LIST_BLUR_ENABLED,
+        blur = LocalThemeStyle.current.listBlur,
         highlight = if (isExpanded) MaterialTheme.colorScheme.primary else null,
         onClick = onToggleExpand
     ) {

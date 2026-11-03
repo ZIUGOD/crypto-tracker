@@ -116,7 +116,10 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
 
-            CryptotrackerTheme(darkTheme = darkTheme) {
+            // Visual theme (look and feel). Only one is available today; a future picker will update this state.
+            val appTheme by remember { mutableStateOf(themePrefs.getAppTheme()) }
+
+            CryptotrackerTheme(darkTheme = darkTheme, appTheme = appTheme) {
                 CryptotrackerApp(
                     onThemeChanged = { newMode ->
                         themeMode = newMode

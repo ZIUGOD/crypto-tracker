@@ -2,15 +2,18 @@ package com.example.crypto_tracker.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.crypto_tracker.data.preferences.AppTheme
 
-private val DarkColorScheme = darkColorScheme(
+private val GlassDarkColorScheme = darkColorScheme(
     background = DarkBgToken,
     surface = DarkSurfaceToken,
     surfaceVariant = DarkElevatedSurfaceToken,
@@ -41,7 +44,7 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = DarkOnErrorContainerToken
 )
 
-private val LightColorScheme = lightColorScheme(
+private val GlassLightColorScheme = lightColorScheme(
     background = LightBgToken,
     surface = LightSurfaceToken,
     surfaceVariant = LightElevatedSurfaceToken,
@@ -81,17 +84,26 @@ private val AppShapes = Shapes(
     extraLarge = RoundedCornerShape(28.dp)
 )
 
+/** Colour scheme of [appTheme] in the requested brightness. [AppTheme.LITE] will get its own palettes. */
+private fun colorSchemeFor(appTheme: AppTheme, darkTheme: Boolean): ColorScheme = when (appTheme) {
+    AppTheme.LITE, AppTheme.GLASS -> if (darkTheme) GlassDarkColorScheme else GlassLightColorScheme
+}
+
+/**
+ * @param darkTheme Light or dark brightness (the user's [com.example.crypto_tracker.data.preferences.ThemeMode]).
+ * @param appTheme Visual theme: picks the palette and the [ThemeStyle] effects.
+ */
 @Composable
 fun CryptotrackerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    appTheme: AppTheme = AppTheme.Default,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = colorSchemeFor(appTheme, darkTheme),
         typography = Typography,
-        shapes = AppShapes,
-        content = content
-    )
+        shapes = AppShapes
+    ) {
+        CompositionLocalProvider(LocalThemeStyle provides appTheme.style(), content = content)
+    }
 }
