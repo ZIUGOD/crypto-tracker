@@ -160,9 +160,10 @@ fun CryptotrackerApp(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             topBar = {
-                // Single pinned banner shared by all screens: stays fixed while content scrolls
-                // and is not reloaded on every tab switch.
+                // Pinned banner slot: stays fixed while content scrolls. Each screen has its own banner,
+                // kept alive so it is not reloaded on every tab switch.
                 BannerAdView(
+                    screen = currentDestination,
                     modifier = Modifier.statusBarsPadding()
                 )
             },

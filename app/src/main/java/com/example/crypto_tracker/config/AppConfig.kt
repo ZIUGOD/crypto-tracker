@@ -1,5 +1,6 @@
 package com.example.crypto_tracker.config
 
+import com.example.crypto_tracker.AppDestinations
 import com.example.crypto_tracker.BuildConfig
 
 /**
@@ -153,8 +154,15 @@ object AppConfig {
 
     // Advertising
     object Ads {
-        /** Banner unit: Google's sample unit in debug builds, the production unit in release (set in app/build.gradle.kts). */
-        val BANNER_AD_UNIT_ID: String = BuildConfig.ADMOB_BANNER_UNIT_ID
+        /**
+         * Banner unit of each screen: Google's sample unit in debug builds, the production units in
+         * release (set in app/build.gradle.kts).
+         */
+        fun bannerUnitId(screen: AppDestinations): String = when (screen) {
+            AppDestinations.HOME -> BuildConfig.ADMOB_BANNER_UNIT_HOME
+            AppDestinations.NEWS -> BuildConfig.ADMOB_BANNER_UNIT_NEWS
+            AppDestinations.SETTINGS -> BuildConfig.ADMOB_BANNER_UNIT_SETTINGS
+        }
         const val BANNER_HEIGHT_DP = 50
 
         /** The ad request waits this long after the first frame so it does not compete with the first draw. */

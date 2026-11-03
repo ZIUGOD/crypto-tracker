@@ -54,11 +54,23 @@ android {
         // or clicks (policy violation); only release uses the production IDs.
         debug {
             manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
-            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+            // One banner per screen. Google's sample banner unit for all of them.
+            for (screen in listOf("HOME", "NEWS", "SETTINGS")) {
+                buildConfigField("String", "ADMOB_BANNER_UNIT_$screen", "\"ca-app-pub-3940256099942544/6300978111\"")
+            }
         }
         release {
             manifestPlaceholders["admobAppId"] = "ca-app-pub-9399548772812079~1855065116"
-            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-9399548772812079/3355763327\"")
+            // One banner per screen. They all use the same production unit until dedicated units are
+            // created in AdMob (one per screen gives per-screen reports): replace the ID of each screen.
+            val bannerUnits = mapOf(
+                "HOME" to "ca-app-pub-9399548772812079/3355763327",
+                "NEWS" to "ca-app-pub-9399548772812079/3355763327",
+                "SETTINGS" to "ca-app-pub-9399548772812079/3355763327"
+            )
+            bannerUnits.forEach { (screen, id) ->
+                buildConfigField("String", "ADMOB_BANNER_UNIT_$screen", "\"$id\"")
+            }
             signingConfigs.findByName("release")?.let { signingConfig = it }
             optimization {
                 enable = true
