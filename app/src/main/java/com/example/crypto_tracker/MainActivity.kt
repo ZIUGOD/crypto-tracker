@@ -62,9 +62,24 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(AppLocale.wrap(newBase))
     }
 
+    /**
+     * Some 90/120 Hz phones keep apps at 60 Hz unless asked; picks the fastest mode that keeps the
+     * current resolution (Android 11+; older versions have no per-window mode API).
+     */
+    private fun preferHighestRefreshRate() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        val display = display ?: return
+        val current = display.mode
+        val fastest = display.supportedModes
+            .filter { it.physicalWidth == current.physicalWidth && it.physicalHeight == current.physicalHeight }
+            .maxByOrNull { it.refreshRate } ?: return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = fastest.modeId }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (AppConfig.Design.REQUEST_HIGH_REFRESH_RATE) preferHighestRefreshRate()
 
         // Initialize the Mobile Ads SDK on main thread
         MobileAds.initialize(this) {}

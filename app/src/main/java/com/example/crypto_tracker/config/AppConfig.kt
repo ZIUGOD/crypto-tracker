@@ -15,8 +15,26 @@ object AppConfig {
 
     // Visual design switches (tokens such as radii and opacities live in GlassDefaults)
     object Design {
-        /** Real backdrop blur behind glass surfaces (Android 12+). When false, glass uses the opaque fallback. */
-        const val GLASS_BACKDROP_BLUR_ENABLED = true
+        /**
+         * Real backdrop blur behind glass surfaces (Android 12+). OFF by default: a RenderEffect blur is
+         * re-executed on every frame the window redraws, and even the single bottom-bar blur halved the
+         * frame rate while scrolling in the emulator. When false, glass uses the denser tint (still styled
+         * with sheen and a luminous border).
+         */
+        const val GLASS_BACKDROP_BLUR_ENABLED = false
+
+        /** Ask for the display's fastest refresh rate (90/120 Hz) instead of letting the system pick 60 Hz. */
+        const val REQUEST_HIGH_REFRESH_RATE = true
+
+        /**
+         * Blur on the cards of scrolling lists (Home coins). Each blurred card re-renders the whole background
+         * every frame, which is the main cause of scroll jank. Off = cards use the denser opaque tint instead;
+         * fixed surfaces such as the bottom bar keep the real blur.
+         */
+        const val GLASS_LIST_BLUR_ENABLED = false
+
+        /** Skip the backdrop blur entirely on devices Android reports as low-RAM. */
+        const val GLASS_BLUR_DISABLED_ON_LOW_RAM = true
 
         /**
          * Resolution the glass blur is computed at, as a fraction of the screen (0.5 = a quarter of the pixels).
@@ -138,6 +156,9 @@ object AppConfig {
         /** Banner unit: Google's sample unit in debug builds, the production unit in release (set in app/build.gradle.kts). */
         val BANNER_AD_UNIT_ID: String = BuildConfig.ADMOB_BANNER_UNIT_ID
         const val BANNER_HEIGHT_DP = 50
+
+        /** The ad request waits this long after the first frame so it does not compete with the first draw. */
+        const val BANNER_LOAD_DELAY_MS = 1_500L
     }
 
     // Account

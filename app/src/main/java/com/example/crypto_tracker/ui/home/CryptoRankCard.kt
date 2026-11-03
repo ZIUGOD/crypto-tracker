@@ -87,6 +87,7 @@ fun CryptoRankCard(
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
         strong = isExpanded,
+        blur = AppConfig.Design.GLASS_LIST_BLUR_ENABLED,
         highlight = if (isExpanded) MaterialTheme.colorScheme.primary else null,
         onClick = onToggleExpand
     ) {

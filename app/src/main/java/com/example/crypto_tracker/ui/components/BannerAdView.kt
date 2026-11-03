@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -48,8 +50,13 @@ fun BannerAdView(
                     adFailedToLoad = true
                 }
             }
-            loadAd(AdRequest.Builder().build())
         }
+    }
+
+    // Deferred: ad SDK work on the main thread would otherwise compete with the first frames.
+    LaunchedEffect(adView) {
+        delay(AppConfig.Ads.BANNER_LOAD_DELAY_MS)
+        adView.loadAd(AdRequest.Builder().build())
     }
 
     DisposableEffect(adView) {

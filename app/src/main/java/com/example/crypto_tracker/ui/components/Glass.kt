@@ -1,5 +1,6 @@
 package com.example.crypto_tracker.ui.components
 
+import android.app.ActivityManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PointMode
@@ -24,6 +27,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 import com.example.crypto_tracker.config.AppConfig
@@ -64,7 +68,7 @@ object GlassDefaults {
     val TintDark = 0.58f to 0.74f
     val TintLight = 0.62f to 0.78f
     // Opacity when no backdrop blur is available (Android < 12 or no source): [normal, strong]
-    val FallbackOpacity = 0.92f to 0.96f
+    val FallbackOpacity = 0.88f to 0.94f
 
     // Spacing
     val ScreenPadding = 16.dp
@@ -81,9 +85,12 @@ private fun isDarkGlass(): Boolean = MaterialTheme.colorScheme.background.lumina
 fun Modifier.glass(
     shape: Shape = GlassDefaults.CardShape,
     strong: Boolean = false,
-    highlight: Color? = null
+    highlight: Color? = null,
+    /** False for cards inside scrolling lists: they use the opaque tint, which is far cheaper to scroll. */
+    blur: Boolean = true
 ): Modifier {
     val hazeState = LocalHazeState.current
+    val blurAllowed = blur && rememberBlurAllowed()
     val dark = isDarkGlass()
 
     // Tint comes from the theme surface token with enough opacity to keep text at AA contrast.
@@ -130,7 +137,7 @@ fun Modifier.glass(
     return this
         .clip(shape)
         .then(
-            if (hazeState != null && AppConfig.Design.GLASS_BACKDROP_BLUR_ENABLED) Modifier.hazeEffect(state = hazeState, style = style) {
+            if (hazeState != null && blurAllowed) Modifier.hazeEffect(state = hazeState, style = style) {
                 inputScale = HazeInputScale.Fixed(AppConfig.Design.GLASS_BLUR_RESOLUTION_SCALE)
             }
             else Modifier.background(fallback)
@@ -139,19 +146,31 @@ fun Modifier.glass(
         .border(width = GlassDefaults.BorderWidth, brush = edge, shape = shape)
 }
 
-/** Glass card. Pass [onClick] to make it tappable. */
+/** Global blur switches: the config flag and, optionally, a low-RAM device check (read once). */
+@Composable
+private fun rememberBlurAllowed(): Boolean {
+    val context = LocalContext.current
+    return remember(context) {
+        AppConfig.Design.GLASS_BACKDROP_BLUR_ENABLED &&
+            !(AppConfig.Design.GLASS_BLUR_DISABLED_ON_LOW_RAM &&
+                context.getSystemService(ActivityManager::class.java)?.isLowRamDevice == true)
+    }
+}
+
+/** Glass card. Pass [onClick] to make it tappable. Set [blur] to false inside long scrolling lists. */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
     shape: Shape = GlassDefaults.CardShape,
     strong: Boolean = false,
     highlight: Color? = null,
+    blur: Boolean = true,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier = modifier
-            .glass(shape = shape, strong = strong, highlight = highlight)
+            .glass(shape = shape, strong = strong, highlight = highlight, blur = blur)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         content = content
     )
@@ -187,6 +206,9 @@ fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
             modifier = Modifier
                 .matchParentSize()
                 .hazeSource(hazeState)
+                // Rasterised once into a GPU texture and re-composited as a single quad: the static scene
+                // (ribbons, dots, grain, vignette) is no longer re-drawn on every frame of a scroll/animation.
+                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                 .background(Brush.verticalGradient(listOf(baseTop, baseBottom)))
                 .drawWithCache {
                     if (!AppConfig.Design.BACKGROUND_TEXTURE_ENABLED) return@drawWithCache onDrawBehind { }
@@ -243,7 +265,7 @@ fun GlassBackground(modifier: Modifier = Modifier, content: @Composable () -> Un
 
                     // Film grain
                     val rnd = Random(7)
-                    val grain = List(((w * h) / 380f).toInt().coerceIn(1500, 4500)) {
+                    val grain = List(((w * h) / 1200f).toInt().coerceIn(600, 1400)) {
                         Offset(rnd.nextFloat() * w, rnd.nextFloat() * h)
                     }
 
